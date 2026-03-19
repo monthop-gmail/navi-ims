@@ -1,0 +1,17 @@
+services:
+  # Dev shell — Codespaces เชื่อมต่อที่ container นี้
+  devcontainer:
+    image: mcr.microsoft.com/devcontainers/base:ubuntu
+    volumes:
+      - ..:/workspace:cached
+    command: /bin/sh -c "while sleep 1000; do :; done"
+    depends_on:
+      - odoo
+      - redis
+      - node-service
+      - inngest-worker
+
+  # Override: ลด celery replicas ใน codespace (ประหยัด resource)
+  celery-worker:
+    deploy:
+      replicas: 1

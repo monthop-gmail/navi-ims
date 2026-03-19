@@ -47,9 +47,7 @@ class PatrolSoldier(models.Model):
 
     active = fields.Boolean(default=True)
 
-    _sql_constraints = [
-        ("callsign_unique", "UNIQUE(callsign)", "สัญญาณเรียกขานซ้ำ!"),
-    ]
+    _callsign_unique = models.Constraint("UNIQUE(callsign)", "สัญญาณเรียกขานซ้ำ!")
 
     @api.depends("mission_ids", "mission_ids.state")
     def _compute_active_mission(self):

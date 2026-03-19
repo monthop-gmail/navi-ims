@@ -22,7 +22,7 @@ class PatrolUnit(models.Model):
         default="squad",
     )
     parent_id = fields.Many2one("patrol.unit", string="หน่วยเหนือ", index=True, ondelete="restrict")
-    parent_path = fields.Char(index=True, unaccent=False)
+    parent_path = fields.Char(index=True)
     child_ids = fields.One2many("patrol.unit", "parent_id", string="หน่วยรอง")
     commander_id = fields.Many2one("patrol.soldier", string="ผู้บังคับหน่วย")
     soldier_ids = fields.One2many("patrol.soldier", "unit_id", string="กำลังพล")

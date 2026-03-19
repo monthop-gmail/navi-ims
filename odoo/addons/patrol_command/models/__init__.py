@@ -6,3 +6,4 @@ from . import patrol_mission
 from . import patrol_gps_log
 from . import patrol_incident
 from . import patrol_camera_feed
+from . import equipment_maintenance

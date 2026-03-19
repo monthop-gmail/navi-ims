@@ -61,7 +61,24 @@ class PatrolEquipment(models.Model):
     assigned_soldier_id = fields.Many2one("patrol.soldier", string="ทหารที่รับผิดชอบ")
     mission_ids = fields.Many2many("patrol.mission", string="ภารกิจ")
 
+    # Maintenance
+    maintenance_ids = fields.One2many("patrol.maintenance.request", "equipment_id", string="ประวัติซ่อม")
+    maintenance_count = fields.Integer(compute="_compute_maintenance_count")
+    schedule_ids = fields.One2many("patrol.maintenance.schedule", "equipment_id", string="แผนซ่อมบำรุง")
+    next_maintenance = fields.Date(string="ซ่อมบำรุงครั้งถัดไป", compute="_compute_next_maintenance")
+
     active = fields.Boolean(default=True)
+
+    @api.depends("maintenance_ids")
+    def _compute_maintenance_count(self):
+        for rec in self:
+            rec.maintenance_count = len(rec.maintenance_ids)
+
+    @api.depends("schedule_ids.next_date")
+    def _compute_next_maintenance(self):
+        for rec in self:
+            dates = rec.schedule_ids.filtered("next_date").mapped("next_date")
+            rec.next_maintenance = min(dates) if dates else False
 
     def _get_node_service_url(self):
         return self.env["ir.config_parameter"].sudo().get_param(

@@ -28,6 +28,7 @@
         "views/patrol_mission_views.xml",
         "views/patrol_incident_views.xml",
         "views/patrol_gps_log_views.xml",
+        "views/equipment_maintenance_views.xml",
     ],
     "assets": {
         "web.assets_backend": [

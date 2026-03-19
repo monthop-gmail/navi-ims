@@ -6,3 +6,6 @@ access_patrol_mission,patrol.mission.user,model_patrol_mission,base.group_user,1
 access_patrol_gps_log,patrol.gps.log.user,model_patrol_gps_log,base.group_user,1,1,1,1
 access_patrol_incident,patrol.incident.user,model_patrol_incident,base.group_user,1,1,1,1
 access_patrol_camera_feed,patrol.camera.feed.user,model_patrol_camera_feed,base.group_user,1,1,1,1
+access_patrol_maintenance_request,patrol.maintenance.request.user,model_patrol_maintenance_request,base.group_user,1,1,1,1
+access_patrol_maintenance_part,patrol.maintenance.part.user,model_patrol_maintenance_part,base.group_user,1,1,1,1
+access_patrol_maintenance_schedule,patrol.maintenance.schedule.user,model_patrol_maintenance_schedule,base.group_user,1,1,1,1

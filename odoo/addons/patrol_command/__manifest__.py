@@ -32,6 +32,7 @@
     "assets": {
         "web.assets_backend": [
             "patrol_command/static/src/css/command_center.css",
+            "patrol_command/static/src/js/whep_player.js",
             "patrol_command/static/src/js/command_center_action.js",
             "patrol_command/static/src/xml/command_center_templates.xml",
         ],

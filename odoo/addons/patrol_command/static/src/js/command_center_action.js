@@ -4,6 +4,7 @@ import { Component, useState, onMounted, onWillUnmount } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { loadJS, loadCSS } from "@web/core/assets";
+import { WhepPlayer } from "./whep_player";
 
 class CommandCenterDashboard extends Component {
     static template = "patrol_command.CommandCenterDashboard";
@@ -22,6 +23,10 @@ class CommandCenterDashboard extends Component {
             selectedSoldierId: null,
             showTrack: false,
             view: "map", // "map" or "grid"
+            // Video
+            videoPopup: null, // { callsign, streamPath, state }
+            videoGrid: [],    // [{ callsign, streamPath, state }]
+            showGrid: false,
         });
 
         this.map = null;
@@ -29,6 +34,11 @@ class CommandCenterDashboard extends Component {
         this.trackLine = null;
         this.missionLayers = {};
         this.refreshInterval = null;
+
+        // Video players
+        this.popupPlayer = null;
+        this.gridPlayers = {}; // callsign → WhepPlayer
+        this.mediamtxUrl = window.location.protocol + "//" + window.location.hostname + ":8889";
 
         onMounted(async () => {
             await this.initMap();
@@ -39,6 +49,8 @@ class CommandCenterDashboard extends Component {
         onWillUnmount(() => {
             if (this.refreshInterval) clearInterval(this.refreshInterval);
             if (this.map) this.map.remove();
+            this.closeVideoPopup();
+            this.closeAllGridVideos();
         });
     }
 
@@ -108,7 +120,12 @@ class CommandCenterDashboard extends Component {
                     ${s.is_online ? "🟢 Online" : "⚫ Offline"}
                 `);
 
-            marker.on("click", () => this.selectSoldier(s));
+            marker.on("click", () => {
+                this.selectSoldier(s);
+                if (s.is_online && s.stream_path) {
+                    this.openVideoPopup(s);
+                }
+            });
             this.markers[`soldier_${s.id}`] = marker;
         }
 
@@ -233,6 +250,107 @@ class CommandCenterDashboard extends Component {
             views: [[false, "form"]],
             target: "current",
         });
+    }
+
+    // ── Video Popup ──
+
+    openVideoPopup(soldier) {
+        const streamPath = soldier.stream_path || soldier.callsign;
+        this.state.videoPopup = {
+            id: soldier.id,
+            callsign: soldier.callsign,
+            name: soldier.name,
+            streamPath,
+            state: "connecting",
+        };
+
+        // Connect after DOM renders
+        setTimeout(() => {
+            const videoEl = document.getElementById("popup-video");
+            if (!videoEl) return;
+
+            this.popupPlayer = new WhepPlayer(videoEl, this.mediamtxUrl);
+            this.popupPlayer.onStateChange = (s) => {
+                if (this.state.videoPopup) {
+                    this.state.videoPopup.state = s;
+                }
+            };
+            this.popupPlayer.connect(streamPath);
+        }, 100);
+    }
+
+    closeVideoPopup() {
+        if (this.popupPlayer) {
+            this.popupPlayer.disconnect();
+            this.popupPlayer = null;
+        }
+        this.state.videoPopup = null;
+    }
+
+    // ── Video Grid ──
+
+    toggleGrid() {
+        this.state.showGrid = !this.state.showGrid;
+        if (this.state.showGrid) {
+            this.openGridForOnlineSoldiers();
+        } else {
+            this.closeAllGridVideos();
+        }
+    }
+
+    openGridForOnlineSoldiers() {
+        const online = this.state.soldiers.filter(
+            (s) => s.is_online && s.stream_path
+        );
+        this.state.videoGrid = online.map((s) => ({
+            id: s.id,
+            callsign: s.callsign,
+            name: s.name,
+            streamPath: s.stream_path || s.callsign,
+            state: "connecting",
+        }));
+
+        // Connect all after DOM
+        setTimeout(() => {
+            for (const cell of this.state.videoGrid) {
+                const videoEl = document.getElementById(`grid-video-${cell.callsign}`);
+                if (!videoEl) continue;
+
+                const player = new WhepPlayer(videoEl, this.mediamtxUrl);
+                player.onStateChange = (s) => {
+                    cell.state = s;
+                };
+                player.connect(cell.streamPath);
+                this.gridPlayers[cell.callsign] = player;
+            }
+        }, 200);
+    }
+
+    closeAllGridVideos() {
+        for (const [key, player] of Object.entries(this.gridPlayers)) {
+            player.disconnect();
+        }
+        this.gridPlayers = {};
+        this.state.videoGrid = [];
+    }
+
+    closeGridVideo(callsign) {
+        const player = this.gridPlayers[callsign];
+        if (player) {
+            player.disconnect();
+            delete this.gridPlayers[callsign];
+        }
+        this.state.videoGrid = this.state.videoGrid.filter(
+            (v) => v.callsign !== callsign
+        );
+    }
+
+    get gridLayoutClass() {
+        const count = this.state.videoGrid.length;
+        if (count <= 1) return "grid-1";
+        if (count <= 2) return "grid-2";
+        if (count <= 4) return "grid-4";
+        return "grid-9";
     }
 
     get onlineSoldiers() {

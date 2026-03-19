@@ -129,6 +129,11 @@ let watchId = null;
 let currentCallsign = "";
 let sosActive = false;
 let sosTimer = null;
+let pc = null; // WebRTC peer connection
+let localStream = null;
+
+// MediaMTX WHIP URL (same host, port 8889)
+const MEDIAMTX_URL = window.location.protocol + "//" + window.location.hostname + ":8889";
 
 function startPatrol() {
     currentCallsign = document.getElementById("callsign").value.trim();
@@ -160,6 +165,9 @@ function startPatrol() {
     socket.on("disconnect", () => {
         document.getElementById("connDot").className = "conn-dot disconnected";
     });
+
+    // Start Video (WHIP publish)
+    startVideo(currentCallsign);
 
     // Start GPS
     if (navigator.geolocation) {
@@ -230,10 +238,67 @@ function sosEnd() {
     }
 }
 
+async function startVideo(callsign) {
+    try {
+        localStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
+            audio: true,
+        });
+
+        pc = new RTCPeerConnection({
+            iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+        });
+
+        localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
+
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+
+        // Wait for ICE gathering
+        await new Promise((resolve) => {
+            if (pc.iceGatheringState === "complete") return resolve();
+            pc.addEventListener("icegatheringstatechange", () => {
+                if (pc.iceGatheringState === "complete") resolve();
+            });
+            setTimeout(resolve, 3000);
+        });
+
+        // WHIP publish
+        const whipUrl = `${MEDIAMTX_URL}/${callsign}/whip`;
+        const resp = await fetch(whipUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/sdp" },
+            body: pc.localDescription.sdp,
+        });
+
+        if (!resp.ok) throw new Error(`WHIP ${resp.status}`);
+
+        const answerSdp = await resp.text();
+        await pc.setRemoteDescription(
+            new RTCSessionDescription({ type: "answer", sdp: answerSdp })
+        );
+
+        if (socket) socket.emit("soldier:stream", { streamPath: callsign });
+        console.log("[WHIP] publishing:", callsign);
+    } catch (err) {
+        console.error("[WHIP] error:", err);
+        // GPS ยังทำงานได้แม้ video พัง
+    }
+}
+
+function stopVideo() {
+    if (pc) { pc.close(); pc = null; }
+    if (localStream) {
+        localStream.getTracks().forEach((t) => t.stop());
+        localStream = null;
+    }
+}
+
 function stopPatrol() {
     if (watchId) navigator.geolocation.clearWatch(watchId);
     if (socket) socket.disconnect();
     if (map) map.remove();
+    stopVideo();
 
     trackPoints = [];
     marker = null;

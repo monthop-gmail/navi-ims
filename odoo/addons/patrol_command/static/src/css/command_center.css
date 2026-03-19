@@ -127,6 +127,26 @@
     opacity: 1;
 }
 
+/* Video Grid Layouts */
+.grid-1 { grid-template-columns: 1fr; }
+.grid-2 { grid-template-columns: 1fr 1fr; }
+.grid-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.grid-9 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
+
+.patrol-grid-cell {
+    min-height: 0;
+}
+
+/* Video Popup Animation */
+.patrol-video-popup {
+    animation: popup-in 0.2s ease-out;
+}
+
+@keyframes popup-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
 /* Scrollbar dark */
 .patrol-sidebar ::-webkit-scrollbar {
     width: 6px;

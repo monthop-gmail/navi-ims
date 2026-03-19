@@ -46,6 +46,25 @@ services:
       retries: 5
 
   # ============================================================
+  #  MEDIA SERVER (MediaMTX — รวม stream กล้องทุกประเภท)
+  #  Dahua NVR (RTSP) → pass-through
+  #  Drone cam (RTMP) → แปลงเป็น RTSP
+  #  Body cam (WebRTC) → แปลงเป็น RTSP
+  # ============================================================
+
+  mediamtx:
+    image: bluenviron/mediamtx:latest
+    ports:
+      - "8554:8554"   # RTSP
+      - "1935:1935"   # RTMP (drone push stream เข้าที่นี่)
+      - "8889:8889"   # WebRTC (body cam push เข้าที่นี่)
+      - "8888:8888"   # HLS (ดูผ่าน browser)
+      - "9997:9997"   # API
+    volumes:
+      - ./mediamtx/mediamtx.yml:/mediamtx.yml:ro
+    restart: unless-stopped
+
+  # ============================================================
   #  CORE: Odoo 19
   # ============================================================
 
@@ -140,11 +159,15 @@ services:
       REDIS_URL: ${REDIS_URL}
       INNGEST_EVENT_KEY: ${INNGEST_EVENT_KEY}
       INNGEST_API_URL: http://inngest:8288
+      MEDIAMTX_API_URL: http://mediamtx:9997
+      MEDIAMTX_RTSP_URL: rtsp://mediamtx:8554
     volumes:
       - shared_media:/media
     depends_on:
       redis:
         condition: service_healthy
+      mediamtx:
+        condition: service_started
 
   # ============================================================
   #  MONITORING (optional)

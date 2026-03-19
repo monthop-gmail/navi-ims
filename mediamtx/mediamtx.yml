@@ -1,0 +1,70 @@
+###############################################
+# MediaMTX Configuration
+# รวม stream กล้องทุกประเภทเข้าจุดเดียว
+###############################################
+
+# ─── Global ───
+logLevel: info
+logDestinations: [stdout]
+
+# ─── RTSP Server (output หลัก — Node.js ดึงจากที่นี่) ───
+rtsp: yes
+rtspAddress: :8554
+protocols: [tcp, udp]
+
+# ─── RTMP Server (Drone push stream เข้าที่นี่) ───
+rtmp: yes
+rtmpAddress: :1935
+
+# ─── WebRTC Server (Body cam push เข้าที่นี่) ───
+webrtc: yes
+webrtcAddress: :8889
+
+# ─── HLS (ดูผ่าน browser สำหรับ monitoring) ───
+hls: yes
+hlsAddress: :8888
+
+# ─── API (ดู/จัดการ stream ทั้งหมด) ───
+api: yes
+apiAddress: :9997
+
+# ─── Paths (กล้องแต่ละตัว) ───
+paths:
+
+  # === กล้อง Fixed — ดึงจาก Dahua NVR ผ่าน RTSP ===
+  # Node.js ดึงได้ที่ rtsp://mediamtx:8554/fixed/cam-01
+  fixed/cam-01:
+    source: rtsp://admin:password@NVR_IP:554/cam/realmonitor?channel=1&subtype=0
+    sourceOnDemand: yes
+  fixed/cam-02:
+    source: rtsp://admin:password@NVR_IP:554/cam/realmonitor?channel=2&subtype=0
+    sourceOnDemand: yes
+  # เพิ่มกล้อง fixed ได้ตามจำนวนช่อง NVR
+
+  # === Drone Cam — Drone push RTMP เข้ามาเอง ===
+  # Drone push ไปที่: rtmp://mediamtx:1935/drone/drone-01
+  # Node.js ดึงได้ที่: rtsp://mediamtx:8554/drone/drone-01
+  drone/drone-01:
+    source: publisher
+
+  drone/drone-02:
+    source: publisher
+
+  # === Body Cam — ทหาร push WebRTC เข้ามา ===
+  # ทหาร push ไปที่: http://mediamtx:8889/patrol/soldier-01/whip
+  # Node.js ดึงได้ที่: rtsp://mediamtx:8554/patrol/soldier-01
+  patrol/soldier-01:
+    source: publisher
+
+  patrol/soldier-02:
+    source: publisher
+
+  patrol/soldier-03:
+    source: publisher
+
+  # === Wildcard — รองรับกล้องใหม่ที่ push เข้ามาเอง ===
+  # เช่น drone-03 push เข้ามา → สร้าง path อัตโนมัติ
+  "~^drone/":
+    source: publisher
+  "~^patrol/":
+    source: publisher

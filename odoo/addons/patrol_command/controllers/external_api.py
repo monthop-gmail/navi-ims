@@ -148,7 +148,72 @@ class ExternalAPIController(http.Controller):
         })
 
         _logger.warning("SOS from %s at %s,%s → incident #%s", callsign, lat, lng, incident.id)
-
-        # TODO: ส่ง event ไป Inngest เพื่อเริ่ม workflow แจ้งเตือน
+        # Inngest event ส่งอัตโนมัติจาก create() override ใน patrol.incident
 
         return {"status": "ok", "incident_id": incident.id}
+
+    @http.route("/patrol/api/external/ai_incident", type="json", auth="none", csrf=False)
+    def receive_ai_incident(self, camera_name, anomaly_type, confidence, image_path=None, bbox=None):
+        """
+        AI ตรวจจับความผิดปกติ → สร้าง Incident อัตโนมัติ
+        ใช้กับทุกกล้อง: fixed / body cam / drone
+        Inngest workflow จะ trigger อัตโนมัติจาก create()
+        """
+        if not _check_api_key():
+            return {"error": "unauthorized"}
+
+        env = request.env(su=True)
+
+        # หาอุปกรณ์จากชื่อ
+        equipment = env["patrol.equipment"].search([("name", "=", camera_name)], limit=1)
+
+        # หา mission ที่เกี่ยวข้อง (ถ้ามี)
+        mission_id = False
+        soldier_id = False
+        lat = equipment.gps_lat if equipment else 0
+        lng = equipment.gps_lng if equipment else 0
+
+        if equipment:
+            # ถ้าเป็น body cam → หาทหาร + mission
+            if equipment.assigned_soldier_id:
+                soldier_id = equipment.assigned_soldier_id.id
+                lat = equipment.assigned_soldier_id.last_lat or lat
+                lng = equipment.assigned_soldier_id.last_lng or lng
+                if equipment.assigned_soldier_id.active_mission_id:
+                    mission_id = equipment.assigned_soldier_id.active_mission_id.id
+
+            # ถ้าเป็น drone/fixed → หา mission จาก equipment
+            if not mission_id and equipment.mission_ids:
+                active_missions = equipment.mission_ids.filtered(lambda m: m.state == "active")
+                if active_missions:
+                    mission_id = active_missions[0].id
+
+        # กำหนด severity ตาม confidence
+        if confidence >= 0.95:
+            severity = "critical"
+        elif confidence >= 0.85:
+            severity = "high"
+        elif confidence >= 0.7:
+            severity = "medium"
+        else:
+            severity = "low"
+
+        incident = env["patrol.incident"].create({
+            "name": f"[AI:{anomaly_type}] {camera_name} ({confidence:.0%})",
+            "incident_type": "ai_detection",
+            "severity": severity,
+            "equipment_id": equipment.id if equipment else False,
+            "soldier_id": soldier_id,
+            "mission_id": mission_id,
+            "lat": lat,
+            "lng": lng,
+            "ai_type": anomaly_type,
+            "ai_confidence": confidence,
+        })
+
+        _logger.info(
+            "AI incident: %s detected %s (%.0f%%) → incident #%s",
+            camera_name, anomaly_type, confidence * 100, incident.id,
+        )
+
+        return {"status": "ok", "incident_id": incident.id, "severity": severity}

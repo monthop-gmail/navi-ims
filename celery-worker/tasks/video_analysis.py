@@ -1,5 +1,6 @@
 """
 Tasks สำหรับวิเคราะห์ภาพจากกล้อง + ตรวจสอบการแก้ไข
+ใช้กับทุกแหล่งภาพ: Fixed cam, Body cam, Drone cam
 """
 
 import os
@@ -8,24 +9,33 @@ import numpy as np
 import httpx
 from celery_app import app
 
-INNGEST_API_URL = os.environ.get("INNGEST_API_URL", "http://inngest:8288")
-INNGEST_EVENT_KEY = os.environ.get("INNGEST_EVENT_KEY", "")
+ODOO_URL = os.environ.get("ODOO_URL", "http://odoo:8069")
+PATROL_API_KEY = os.environ.get("PATROL_API_KEY", "patrol-secret-key")
 
 
-def send_inngest_event(name: str, data: dict):
-    """ส่ง event ไป Inngest Server"""
-    httpx.post(
-        f"{INNGEST_API_URL}/e/{INNGEST_EVENT_KEY}",
-        json={"name": name, "data": data},
-        timeout=10,
-    )
+def call_odoo_api(endpoint: str, params: dict):
+    """เรียก Odoo Patrol External API"""
+    try:
+        resp = httpx.post(
+            f"{ODOO_URL}{endpoint}",
+            json={"jsonrpc": "2.0", "method": "call", "params": params},
+            headers={"X-Patrol-Api-Key": PATROL_API_KEY},
+            timeout=15,
+        )
+        data = resp.json()
+        return data.get("result")
+    except Exception as e:
+        print(f"[ODOO ERROR] {endpoint}: {e}")
+        return None
 
 
 @app.task(name="tasks.analyze_frame", bind=True, max_retries=3)
 def analyze_frame(self, image_path: str, camera_id: str):
     """
-    AI วิเคราะห์ภาพ 1 frame
-    ตรวจจับ: คน, หมวกนิรภัย, ไฟ, ควัน ฯลฯ
+    AI วิเคราะห์ภาพ 1 frame จากกล้องใดก็ได้
+    ตรวจจับ: บุคคล, ยานพาหนะ, ไฟ, ควัน, อาวุธ ฯลฯ
+
+    camera_id = equipment.name ใน Odoo (เช่น "CAM-FIXED-01")
     """
     try:
         image = cv2.imread(image_path)
@@ -33,26 +43,25 @@ def analyze_frame(self, image_path: str, camera_id: str):
             return {"status": "error", "reason": "cannot read image"}
 
         # ─── ตรวจจับด้วย YOLO ───
-        # TODO: โหลด model จริง เช่น YOLOv8
+        # TODO: โหลด model จริง
         # from ultralytics import YOLO
-        # model = YOLO("yolov8n.pt")
+        # model = YOLO("/models/yolov8n.pt")
         # results = model.predict(image, conf=0.5)
+        # anomalies = parse_yolo_results(results)
 
-        # ─── Placeholder: สุ่มจำลองการตรวจจับ ───
+        # ─── Placeholder: สุ่มจำลอง (5% chance) ───
         anomalies = _detect_anomalies_placeholder(image)
 
         if anomalies:
             for anomaly in anomalies:
-                send_inngest_event(
-                    "anomaly.detected",
-                    {
-                        "camera_id": camera_id,
-                        "type": anomaly["type"],
-                        "confidence": anomaly["confidence"],
-                        "image_path": image_path,
-                        "bbox": anomaly.get("bbox"),
-                    },
-                )
+                # สร้าง incident ใน Odoo ตรง → trigger Inngest อัตโนมัติ
+                call_odoo_api("/patrol/api/external/ai_incident", {
+                    "camera_name": camera_id,
+                    "anomaly_type": anomaly["type"],
+                    "confidence": anomaly["confidence"],
+                    "image_path": image_path,
+                    "bbox": anomaly.get("bbox"),
+                })
 
         return {
             "status": "analyzed",
@@ -68,18 +77,16 @@ def analyze_frame(self, image_path: str, camera_id: str):
 def verify_resolution(self, proof_image_path: str, original_anomaly_type: str):
     """
     AI ตรวจสอบว่าปัญหาถูกแก้ไขจริงหรือยัง
-    เช่น ส่งรูปมาว่าใส่หมวกแล้ว → AI ยืนยันว่าใส่จริง
     """
     try:
         image = cv2.imread(proof_image_path)
         if image is None:
             return {"passed": False, "reason": "cannot read proof image"}
 
-        # TODO: ใช้ AI model จริงตรวจสอบ
-        # ตัวอย่าง: ถ้า anomaly เดิมคือ "no_helmet"
-        # → ตรวจว่าในรูปใหม่มีหมวกหรือยัง
+        # TODO: ใช้ AI model จริง
+        # ตัวอย่าง: ตรวจว่า "intruder" หายไปจาก frame แล้วหรือยัง
 
-        # Placeholder
+        # Placeholder — ผ่านเสมอ
         return {"passed": True, "reason": "verified by AI"}
 
     except Exception as exc:
@@ -127,11 +134,13 @@ def _detect_anomalies_placeholder(image: np.ndarray) -> list:
     Placeholder — จำลองผลการตรวจจับ
     ใน production ให้แทนที่ด้วย YOLO / custom model จริง
     """
-    # สุ่ม 5% ว่าเจอความผิดปกติ (สำหรับทดสอบ)
+    anomaly_types = ["intruder", "vehicle", "fire", "smoke", "weapon"]
+
     if np.random.random() < 0.05:
+        atype = np.random.choice(anomaly_types)
         return [
             {
-                "type": "no_helmet",
+                "type": atype,
                 "confidence": round(float(np.random.uniform(0.7, 0.99)), 2),
                 "bbox": [100, 200, 300, 400],
             }

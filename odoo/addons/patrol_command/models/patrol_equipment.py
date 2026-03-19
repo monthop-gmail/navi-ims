@@ -1,5 +1,6 @@
 from odoo import models, fields, api
 import logging
+import requests
 
 _logger = logging.getLogger(__name__)
 
@@ -62,17 +63,38 @@ class PatrolEquipment(models.Model):
 
     active = fields.Boolean(default=True)
 
+    def _get_node_service_url(self):
+        return self.env["ir.config_parameter"].sudo().get_param(
+            "patrol.node_service_url", "http://node-service:3000"
+        )
+
     def action_start_stream(self):
         """สั่ง Node.js เริ่มดึง frame จากกล้อง"""
-        # TODO: เรียก HTTP API POST /api/camera/start
+        url = self._get_node_service_url()
         for rec in self:
-            rec.is_streaming = True
-            rec.state = "active"
-            _logger.info("START stream: %s → %s", rec.name, rec.stream_path)
+            if not rec.stream_path:
+                continue
+            try:
+                requests.post(f"{url}/api/camera/start", json={
+                    "cameraId": rec.name,
+                    "rtspPath": rec.stream_path,
+                    "intervalMs": rec.capture_interval or 2000,
+                }, timeout=5)
+                rec.is_streaming = True
+                rec.state = "active"
+                _logger.info("START stream: %s → %s", rec.name, rec.stream_path)
+            except Exception as e:
+                _logger.error("Failed to start stream %s: %s", rec.name, e)
 
     def action_stop_stream(self):
         """สั่ง Node.js หยุดดึง frame"""
-        # TODO: เรียก HTTP API POST /api/camera/stop
+        url = self._get_node_service_url()
         for rec in self:
-            rec.is_streaming = False
-            _logger.info("STOP stream: %s", rec.name)
+            try:
+                requests.post(f"{url}/api/camera/stop", json={
+                    "cameraId": rec.name,
+                }, timeout=5)
+                rec.is_streaming = False
+                _logger.info("STOP stream: %s", rec.name)
+            except Exception as e:
+                _logger.error("Failed to stop stream %s: %s", rec.name, e)

@@ -20,5 +20,5 @@ app.conf.update(
     worker_max_tasks_per_child=50,  # restart worker หลังทำ 50 tasks (ป้องกัน memory leak)
 )
 
-# Auto-discover tasks
-app.autodiscover_tasks(["tasks"])
+# Import tasks explicitly
+import tasks.video_analysis  # noqa: F401

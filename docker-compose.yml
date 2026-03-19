@@ -143,6 +143,7 @@ services:
       CELERY_BROKER_URL: ${REDIS_URL}
       CELERY_RESULT_BACKEND: ${REDIS_URL}
       ODOO_URL: ${ODOO_URL}
+      PATROL_API_KEY: patrol-secret-key
     volumes:
       - shared_media:/media
     depends_on:

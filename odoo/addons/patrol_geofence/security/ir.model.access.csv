@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_geofence,patrol.geofence.user,model_patrol_geofence,patrol_command.group_soldier,1,0,0,0
+access_geofence_leader,patrol.geofence.leader,model_patrol_geofence,patrol_command.group_platoon_leader,1,1,1,1
+access_geofence_alert,patrol.geofence.alert.user,model_patrol_geofence_alert,patrol_command.group_soldier,1,0,0,0
+access_geofence_alert_leader,patrol.geofence.alert.leader,model_patrol_geofence_alert,patrol_command.group_squad_leader,1,1,1,0

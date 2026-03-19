@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_watchlist,patrol.watchlist.user,model_patrol_watchlist,patrol_command.group_squad_leader,1,0,0,0
+access_watchlist_cmd,patrol.watchlist.cmd,model_patrol_watchlist,patrol_command.group_platoon_leader,1,1,1,1
+access_intel_report,patrol.intel.report.user,model_patrol_intel_report,patrol_command.group_soldier,1,0,1,0
+access_intel_report_leader,patrol.intel.report.leader,model_patrol_intel_report,patrol_command.group_squad_leader,1,1,1,1
+access_threat_zone,patrol.threat.zone.user,model_patrol_threat_zone,patrol_command.group_soldier,1,0,0,0
+access_threat_zone_cmd,patrol.threat.zone.cmd,model_patrol_threat_zone,patrol_command.group_platoon_leader,1,1,1,1

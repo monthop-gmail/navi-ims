@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_training,patrol.training.user,model_patrol_training,patrol_command.group_soldier,1,0,0,0
+access_training_leader,patrol.training.leader,model_patrol_training,patrol_command.group_squad_leader,1,1,1,1
+access_training_req,patrol.training.requirement.user,model_patrol_training_requirement,patrol_command.group_squad_leader,1,0,0,0
+access_training_req_cmd,patrol.training.requirement.cmd,model_patrol_training_requirement,patrol_command.group_company_commander,1,1,1,1
+access_duty,patrol.duty.roster.user,model_patrol_duty_roster,patrol_command.group_soldier,1,0,0,0
+access_duty_leader,patrol.duty.roster.leader,model_patrol_duty_roster,patrol_command.group_squad_leader,1,1,1,1
+access_health,patrol.health.record.user,model_patrol_health_record,patrol_command.group_soldier,1,0,0,0
+access_health_leader,patrol.health.record.leader,model_patrol_health_record,patrol_command.group_squad_leader,1,1,1,1

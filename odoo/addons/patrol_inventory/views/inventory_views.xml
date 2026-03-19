@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ═══ Supply Item ═══ -->
+    <record id="supply_item_view_tree" model="ir.ui.view">
+        <field name="name">patrol.supply.item.tree</field>
+        <field name="model">patrol.supply.item</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="is_low_stock == True">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="item_type"/>
+                <field name="category_id"/>
+                <field name="quantity"/>
+                <field name="min_quantity"/>
+                <field name="unit_of_measure"/>
+                <field name="location"/>
+                <field name="assigned_to"/>
+                <field name="is_low_stock" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="supply_item_action" model="ir.actions.act_window">
+        <field name="name">คลังพัสดุ</field>
+        <field name="res_model">patrol.supply.item</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ═══ Supply Request ═══ -->
+    <record id="supply_request_view_tree" model="ir.ui.view">
+        <field name="name">patrol.supply.request.tree</field>
+        <field name="model">patrol.supply.request</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="request_type"/>
+                <field name="soldier_id"/>
+                <field name="unit_id"/>
+                <field name="state" widget="badge"/>
+                <field name="request_date"/>
+                <field name="approved_by"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="supply_request_view_form" model="ir.ui.view">
+        <field name="name">patrol.supply.request.form</field>
+        <field name="model">patrol.supply.request</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_submit" string="ส่งขออนุมัติ" type="object"
+                            invisible="state != 'draft'" class="btn-primary"/>
+                    <button name="action_approve" string="อนุมัติ" type="object"
+                            invisible="state != 'submitted'" class="btn-success"/>
+                    <button name="action_done" string="เบิกจ่าย" type="object"
+                            invisible="state != 'approved'" class="btn-primary"/>
+                    <button name="action_reject" string="ไม่อนุมัติ" type="object"
+                            invisible="state != 'submitted'" class="btn-danger"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="request_type"/>
+                            <field name="soldier_id"/>
+                            <field name="unit_id"/>
+                        </group>
+                        <group>
+                            <field name="request_date"/>
+                            <field name="mission_id"/>
+                            <field name="approved_by"/>
+                        </group>
+                    </group>
+                    <field name="line_ids">
+                        <list editable="bottom">
+                            <field name="item_id"/>
+                            <field name="quantity"/>
+                            <field name="available"/>
+                            <field name="note"/>
+                        </list>
+                    </field>
+                    <field name="note" placeholder="หมายเหตุ..."/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="supply_request_action" model="ir.actions.act_window">
+        <field name="name">ใบเบิกพัสดุ</field>
+        <field name="res_model">patrol.supply.request</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ═══ Menus ═══ -->
+    <menuitem id="menu_inventory"
+              name="คลังพัสดุ"
+              parent="patrol_command.menu_patrol_root"
+              sequence="35"/>
+
+    <menuitem id="menu_supply_items" name="รายการพัสดุ"
+              parent="menu_inventory" action="supply_item_action" sequence="10"/>
+    <menuitem id="menu_supply_requests" name="ใบเบิกพัสดุ"
+              parent="menu_inventory" action="supply_request_action" sequence="20"/>
+
+    <!-- Sequence -->
+    <record id="seq_supply_request" model="ir.sequence">
+        <field name="name">Supply Request</field>
+        <field name="code">patrol.supply.request</field>
+        <field name="prefix">REQ-%(year)s-</field>
+        <field name="padding">4</field>
+    </record>
+</odoo>

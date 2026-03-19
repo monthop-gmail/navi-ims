@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══ Training ═══ -->
+    <record id="training_view_tree" model="ir.ui.view">
+        <field name="name">patrol.training.tree</field>
+        <field name="model">patrol.training</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="is_expired == True">
+                <field name="soldier_id"/>
+                <field name="name"/>
+                <field name="training_type"/>
+                <field name="date_completed"/>
+                <field name="expiry_date"/>
+                <field name="is_expired"/>
+                <field name="score"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="training_action" model="ir.actions.act_window">
+        <field name="name">ประวัติฝึกอบรม</field>
+        <field name="res_model">patrol.training</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ═══ Duty Roster ═══ -->
+    <record id="duty_view_tree" model="ir.ui.view">
+        <field name="name">patrol.duty.roster.tree</field>
+        <field name="model">patrol.duty.roster</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="soldier_id"/>
+                <field name="duty_type"/>
+                <field name="location"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="duty_action" model="ir.actions.act_window">
+        <field name="name">ตารางเวร</field>
+        <field name="res_model">patrol.duty.roster</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ═══ Health ═══ -->
+    <record id="health_view_tree" model="ir.ui.view">
+        <field name="name">patrol.health.record.tree</field>
+        <field name="model">patrol.health.record</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="check_date"/>
+                <field name="soldier_id"/>
+                <field name="check_type"/>
+                <field name="readiness" widget="badge"
+                       decoration-success="readiness == 'fit'"
+                       decoration-warning="readiness == 'limited'"
+                       decoration-danger="readiness == 'unfit'"/>
+                <field name="next_check_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="health_action" model="ir.actions.act_window">
+        <field name="name">ประวัติสุขภาพ</field>
+        <field name="res_model">patrol.health.record</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ═══ Menus ═══ -->
+    <menuitem id="menu_personnel"
+              name="กำลังพล"
+              parent="patrol_command.menu_patrol_root"
+              sequence="25"/>
+
+    <menuitem id="menu_training" name="ประวัติฝึกอบรม"
+              parent="menu_personnel" action="training_action" sequence="10"/>
+    <menuitem id="menu_duty" name="ตารางเวร"
+              parent="menu_personnel" action="duty_action" sequence="20"/>
+    <menuitem id="menu_health" name="ประวัติสุขภาพ"
+              parent="menu_personnel" action="health_action" sequence="30"/>
+</odoo>

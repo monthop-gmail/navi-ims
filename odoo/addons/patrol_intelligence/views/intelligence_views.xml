@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ═══ Watchlist ═══ -->
+    <record id="watchlist_view_tree" model="ir.ui.view">
+        <field name="name">patrol.watchlist.tree</field>
+        <field name="model">patrol.watchlist</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="threat_level == 'critical'"
+                  decoration-warning="threat_level == 'high'">
+                <field name="name"/>
+                <field name="entry_type"/>
+                <field name="threat_level" widget="badge"
+                       decoration-danger="threat_level == 'critical'"
+                       decoration-warning="threat_level == 'high'"
+                       decoration-info="threat_level == 'medium'"/>
+                <field name="status" widget="badge"/>
+                <field name="plate_number"/>
+                <field name="last_seen_location"/>
+                <field name="last_seen_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="watchlist_view_form" model="ir.ui.view">
+        <field name="name">patrol.watchlist.form</field>
+        <field name="model">patrol.watchlist</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <field name="photo" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="entry_type"/>
+                            <field name="threat_level"/>
+                            <field name="status"/>
+                            <field name="alias"/>
+                            <field name="id_number"/>
+                        </group>
+                        <group>
+                            <field name="plate_number" invisible="entry_type != 'vehicle'"/>
+                            <field name="vehicle_type" invisible="entry_type != 'vehicle'"/>
+                            <field name="last_seen_location"/>
+                            <field name="last_seen_date"/>
+                            <field name="last_seen_lat"/>
+                            <field name="last_seen_lng"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="รายละเอียด">
+                            <field name="description" placeholder="รูปพรรณ..."/>
+                        </page>
+                        <page string="บันทึก">
+                            <field name="note"/>
+                        </page>
+                        <page string="เหตุการณ์">
+                            <field name="incident_ids">
+                                <list><field name="name"/><field name="date_reported"/><field name="state"/></list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="watchlist_action" model="ir.actions.act_window">
+        <field name="name">Watchlist</field>
+        <field name="res_model">patrol.watchlist</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ═══ Intel Report ═══ -->
+    <record id="intel_report_view_tree" model="ir.ui.view">
+        <field name="name">patrol.intel.report.tree</field>
+        <field name="model">patrol.intel.report</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="report_type"/>
+                <field name="classification" widget="badge"/>
+                <field name="reported_by"/>
+                <field name="mission_id"/>
+                <field name="report_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="intel_report_action" model="ir.actions.act_window">
+        <field name="name">รายงานข่าวกรอง</field>
+        <field name="res_model">patrol.intel.report</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ═══ Threat Zone ═══ -->
+    <record id="threat_zone_view_tree" model="ir.ui.view">
+        <field name="name">patrol.threat.zone.tree</field>
+        <field name="model">patrol.threat.zone</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="threat_level in ('critical','high')">
+                <field name="name"/>
+                <field name="zone_type"/>
+                <field name="threat_level" widget="badge"/>
+                <field name="radius_m"/>
+                <field name="valid_from"/>
+                <field name="valid_until"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="threat_zone_action" model="ir.actions.act_window">
+        <field name="name">พื้นที่เสี่ยง</field>
+        <field name="res_model">patrol.threat.zone</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ═══ Menus ═══ -->
+    <menuitem id="menu_intelligence"
+              name="ข่าวกรอง"
+              parent="patrol_command.menu_patrol_root"
+              sequence="40"/>
+
+    <menuitem id="menu_watchlist" name="Watchlist"
+              parent="menu_intelligence" action="watchlist_action" sequence="10"/>
+    <menuitem id="menu_intel_report" name="รายงานข่าวกรอง"
+              parent="menu_intelligence" action="intel_report_action" sequence="20"/>
+    <menuitem id="menu_threat_zone" name="พื้นที่เสี่ยง"
+              parent="menu_intelligence" action="threat_zone_action" sequence="30"/>
+
+    <!-- Sequence -->
+    <record id="seq_intel_report" model="ir.sequence">
+        <field name="name">Intel Report</field>
+        <field name="code">patrol.intel.report</field>
+        <field name="prefix">INTEL-%(year)s-</field>
+        <field name="padding">4</field>
+    </record>
+</odoo>

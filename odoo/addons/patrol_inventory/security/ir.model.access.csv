@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_supply_cat,patrol.supply.category.user,model_patrol_supply_category,patrol_command.group_soldier,1,0,0,0
+access_supply_cat_cmd,patrol.supply.category.cmd,model_patrol_supply_category,patrol_command.group_company_commander,1,1,1,1
+access_supply_item,patrol.supply.item.user,model_patrol_supply_item,patrol_command.group_soldier,1,0,0,0
+access_supply_item_leader,patrol.supply.item.leader,model_patrol_supply_item,patrol_command.group_platoon_leader,1,1,1,1
+access_supply_req,patrol.supply.request.user,model_patrol_supply_request,patrol_command.group_soldier,1,0,1,0
+access_supply_req_leader,patrol.supply.request.leader,model_patrol_supply_request,patrol_command.group_squad_leader,1,1,1,1
+access_supply_req_line,patrol.supply.request.line.user,model_patrol_supply_request_line,patrol_command.group_soldier,1,0,1,0
+access_supply_req_line_leader,patrol.supply.request.line.leader,model_patrol_supply_request_line,patrol_command.group_squad_leader,1,1,1,1

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ═══ Geofence ═══ -->
+    <record id="geofence_view_tree" model="ir.ui.view">
+        <field name="name">patrol.geofence.tree</field>
+        <field name="model">patrol.geofence</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="fence_type"/>
+                <field name="trigger_on"/>
+                <field name="severity" widget="badge"
+                       decoration-danger="severity in ('critical','high')"
+                       decoration-warning="severity == 'medium'"/>
+                <field name="geometry_type"/>
+                <field name="radius_m"/>
+                <field name="auto_create_incident"/>
+                <field name="mission_id"/>
+                <field name="alert_count"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="geofence_view_form" model="ir.ui.view">
+        <field name="name">patrol.geofence.form</field>
+        <field name="model">patrol.geofence</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="ชื่อเขต"/></h1>
+                    </div>
+                    <group>
+                        <group string="การตั้งค่า">
+                            <field name="fence_type"/>
+                            <field name="trigger_on"/>
+                            <field name="severity"/>
+                            <field name="auto_create_incident"/>
+                            <field name="applies_to"/>
+                            <field name="color" widget="color"/>
+                        </group>
+                        <group string="พื้นที่">
+                            <field name="geometry_type"/>
+                            <field name="center_lat"/>
+                            <field name="center_lng"/>
+                            <field name="radius_m" invisible="geometry_type != 'circle'"/>
+                            <field name="geojson" invisible="geometry_type != 'polygon'"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="mission_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="ประวัติแจ้งเตือน">
+                            <field name="alert_ids">
+                                <list>
+                                    <field name="alert_time"/>
+                                    <field name="alert_type" widget="badge"/>
+                                    <field name="soldier_id"/>
+                                    <field name="equipment_id"/>
+                                    <field name="incident_id"/>
+                                    <field name="acknowledged"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="geofence_action" model="ir.actions.act_window">
+        <field name="name">เขตพื้นที่</field>
+        <field name="res_model">patrol.geofence</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ═══ Alerts ═══ -->
+    <record id="geofence_alert_view_tree" model="ir.ui.view">
+        <field name="name">patrol.geofence.alert.tree</field>
+        <field name="model">patrol.geofence.alert</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="acknowledged == False">
+                <field name="alert_time"/>
+                <field name="geofence_id"/>
+                <field name="alert_type" widget="badge"/>
+                <field name="soldier_id"/>
+                <field name="equipment_id"/>
+                <field name="lat"/>
+                <field name="lng"/>
+                <field name="incident_id"/>
+                <field name="acknowledged"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="geofence_alert_action" model="ir.actions.act_window">
+        <field name="name">Geofence Alerts</field>
+        <field name="res_model">patrol.geofence.alert</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <!-- ═══ Menus ═══ -->
+    <menuitem id="menu_geofence"
+              name="เขตพื้นที่"
+              parent="patrol_command.menu_patrol_root"
+              sequence="45"/>
+
+    <menuitem id="menu_geofence_list" name="กำหนดเขต"
+              parent="menu_geofence" action="geofence_action" sequence="10"/>
+    <menuitem id="menu_geofence_alerts" name="Geofence Alerts"
+              parent="menu_geofence" action="geofence_alert_action" sequence="20"/>
+</odoo>

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══ Security Groups (ลำดับชั้น — สูงกว่า inherit ต่ำกว่า) ═══ -->
+
+    <!-- ทหาร — ดูเฉพาะของตัวเอง -->
+    <record id="group_soldier" model="res.groups">
+        <field name="name">ทหาร</field>
+        <!-- Patrol Command Center group -->
+        <field name="comment">ดูภารกิจ/อุปกรณ์/เหตุการณ์ของตัวเอง, แจ้งซ่อมได้</field>
+    </record>
+
+    <!-- ผบ.หมู่ — ดูทหารในหมู่ -->
+    <record id="group_squad_leader" model="res.groups">
+        <field name="name">ผบ.หมู่</field>
+        <!-- Patrol Command Center group -->
+        <field name="implied_ids" eval="[(4, ref('group_soldier'))]"/>
+        <field name="comment">ดูทหารในหมู่, มอบหมายงาน, จัดการเหตุการณ์</field>
+    </record>
+
+    <!-- ผบ.หมวด — ดูทั้งหมวด + สร้างภารกิจ -->
+    <record id="group_platoon_leader" model="res.groups">
+        <field name="name">ผบ.หมวด</field>
+        <!-- Patrol Command Center group -->
+        <field name="implied_ids" eval="[(4, ref('group_squad_leader'))]"/>
+        <field name="comment">ดูทั้งหมวด, สร้างภารกิจ, จัดการอุปกรณ์</field>
+    </record>
+
+    <!-- ผบ.กองร้อย — ดูทั้งหมด -->
+    <record id="group_company_commander" model="res.groups">
+        <field name="name">ผบ.กองร้อย</field>
+        <!-- Patrol Command Center group -->
+        <field name="implied_ids" eval="[(4, ref('group_platoon_leader'))]"/>
+        <field name="comment">ดูทุกอย่าง, ตั้งค่าระบบ</field>
+    </record>
+
+    <!-- ═══ Record Rules ═══ -->
+
+    <!-- ทหาร: เห็นเฉพาะภารกิจที่ตัวเองอยู่ -->
+    <record id="rule_mission_soldier" model="ir.rule">
+        <field name="name">ทหาร: เห็นเฉพาะภารกิจตัวเอง</field>
+        <field name="model_id" ref="model_patrol_mission"/>
+        <field name="groups" eval="[(4, ref('group_soldier'))]"/>
+        <field name="domain_force">[('soldier_ids.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- ทหาร: เห็นเฉพาะ incident ที่เกี่ยวกับตัวเอง -->
+    <record id="rule_incident_soldier" model="ir.rule">
+        <field name="name">ทหาร: เห็นเฉพาะเหตุการณ์ตัวเอง</field>
+        <field name="model_id" ref="model_patrol_incident"/>
+        <field name="groups" eval="[(4, ref('group_soldier'))]"/>
+        <field name="domain_force">['|', ('soldier_id.user_id', '=', user.id), ('assigned_to.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- ทหาร: เห็นเฉพาะอุปกรณ์ที่รับผิดชอบ -->
+    <record id="rule_equipment_soldier" model="ir.rule">
+        <field name="name">ทหาร: เห็นเฉพาะอุปกรณ์ตัวเอง</field>
+        <field name="model_id" ref="model_patrol_equipment"/>
+        <field name="groups" eval="[(4, ref('group_soldier'))]"/>
+        <field name="domain_force">[('assigned_soldier_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- ทหาร: เห็นเฉพาะใบแจ้งซ่อมที่ตัวเองสร้าง -->
+    <record id="rule_maintenance_soldier" model="ir.rule">
+        <field name="name">ทหาร: เห็นเฉพาะใบแจ้งซ่อมตัวเอง</field>
+        <field name="model_id" ref="model_patrol_maintenance_request"/>
+        <field name="groups" eval="[(4, ref('group_soldier'))]"/>
+        <field name="domain_force">[('requested_by', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- ทหาร: เห็นเฉพาะข้อมูลทหารตัวเอง -->
+    <record id="rule_soldier_self" model="ir.rule">
+        <field name="name">ทหาร: เห็นเฉพาะข้อมูลตัวเอง</field>
+        <field name="model_id" ref="model_patrol_soldier"/>
+        <field name="groups" eval="[(4, ref('group_soldier'))]"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- ผบ.หมู่: เห็นทหารในหน่วยตัวเอง + หน่วยรอง -->
+    <record id="rule_soldier_squad_leader" model="ir.rule">
+        <field name="name">ผบ.หมู่: เห็นทหารในหน่วย</field>
+        <field name="model_id" ref="model_patrol_soldier"/>
+        <field name="groups" eval="[(4, ref('group_squad_leader'))]"/>
+        <field name="domain_force">[('unit_id.commander_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- ผบ.หมวด: เห็นภารกิจของหน่วยตัวเอง -->
+    <record id="rule_mission_platoon_leader" model="ir.rule">
+        <field name="name">ผบ.หมวด: เห็นภารกิจหน่วย</field>
+        <field name="model_id" ref="model_patrol_mission"/>
+        <field name="groups" eval="[(4, ref('group_platoon_leader'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- ผบ.กองร้อย: เห็นทุกอย่าง -->
+    <record id="rule_all_company_commander" model="ir.rule">
+        <field name="name">ผบ.กองร้อย: เห็นทุกอย่าง</field>
+        <field name="model_id" ref="model_patrol_soldier"/>
+        <field name="groups" eval="[(4, ref('group_company_commander'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_all_cc_equipment" model="ir.rule">
+        <field name="name">ผบ.กองร้อย: อุปกรณ์ทั้งหมด</field>
+        <field name="model_id" ref="model_patrol_equipment"/>
+        <field name="groups" eval="[(4, ref('group_company_commander'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_all_cc_incident" model="ir.rule">
+        <field name="name">ผบ.กองร้อย: เหตุการณ์ทั้งหมด</field>
+        <field name="model_id" ref="model_patrol_incident"/>
+        <field name="groups" eval="[(4, ref('group_company_commander'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_all_cc_maintenance" model="ir.rule">
+        <field name="name">ผบ.กองร้อย: ใบแจ้งซ่อมทั้งหมด</field>
+        <field name="model_id" ref="model_patrol_maintenance_request"/>
+        <field name="groups" eval="[(4, ref('group_company_commander'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+</odoo>

@@ -7,6 +7,7 @@ class PatrolSoldier(models.Model):
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "callsign"
 
+    user_id = fields.Many2one("res.users", string="Odoo User", index=True, help="เชื่อมกับ account login")
     name = fields.Char(string="ชื่อ-สกุล", required=True, tracking=True)
     callsign = fields.Char(string="สัญญาณเรียกขาน", required=True, index=True, copy=False)
     rank = fields.Selection(

@@ -18,6 +18,7 @@
     "license": "LGPL-3",
     "depends": ["base", "mail", "web"],
     "data": [
+        "security/patrol_security.xml",
         "security/ir.model.access.csv",
         "data/patrol_data.xml",
         "views/menu_views.xml",

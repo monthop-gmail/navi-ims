@@ -229,42 +229,9 @@
         <field name="model">patrol.equipment</field>
         <field name="inherit_id" ref="patrol_equipment_view_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//group[@string='ตำแหน่ง']" position="after">
-                <group string="ซ่อมบำรุง">
-                    <group>
-                        <field name="maintenance_count"/>
-                        <field name="next_maintenance"/>
-                    </group>
-                </group>
-                <notebook>
-                    <page string="ประวัติซ่อม">
-                        <field name="maintenance_ids">
-                            <list>
-                                <field name="code"/>
-                                <field name="name"/>
-                                <field name="maintenance_type"/>
-                                <field name="state" widget="badge"/>
-                                <field name="technician_id"/>
-                                <field name="request_date"/>
-                                <field name="duration" widget="float_time"/>
-                                <field name="total_cost"/>
-                            </list>
-                        </field>
-                    </page>
-                    <page string="แผนซ่อมบำรุง">
-                        <field name="schedule_ids">
-                            <list editable="bottom">
-                                <field name="name"/>
-                                <field name="interval_number"/>
-                                <field name="interval_type"/>
-                                <field name="last_done_date"/>
-                                <field name="next_date"/>
-                                <button name="action_create_request" string="สร้างใบแจ้งซ่อม"
-                                        type="object" icon="fa-wrench"/>
-                            </list>
-                        </field>
-                    </page>
-                </notebook>
+            <xpath expr="//field[@name='gps_lng']" position="after">
+                <field name="maintenance_count"/>
+                <field name="next_maintenance"/>
             </xpath>
         </field>
     </record>

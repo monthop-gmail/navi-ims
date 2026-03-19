@@ -17,10 +17,12 @@ done
 # Check if Odoo DB is initialized
 DB_INIT=$(docker compose -f /workspace/docker-compose.yml exec -T postgres-odoo psql -U odoo -d odoo -tAc "SELECT 1 FROM ir_module_module LIMIT 1" 2>/dev/null || echo "")
 if [ -z "$DB_INIT" ]; then
-    echo "📦 Initializing Odoo database + patrol_command module..."
-    docker compose -f /workspace/docker-compose.yml run --rm odoo odoo -i base,patrol_command --stop-after-init -d odoo
+    echo "📦 Initializing Odoo database + all modules..."
+    docker compose -f /workspace/docker-compose.yml run --rm odoo odoo \
+        -i base,patrol_command,patrol_personnel,patrol_inventory,patrol_intelligence,patrol_geofence \
+        --stop-after-init -d odoo
     docker compose -f /workspace/docker-compose.yml restart odoo
-    echo "✅ Odoo initialized"
+    echo "✅ Odoo initialized with all modules"
 else
     echo "✅ Odoo database already initialized"
 fi
@@ -34,7 +36,7 @@ fi
 
 echo ""
 echo "════════════════════════════════════════════"
-echo "  NAVI-CC — Patrol Command Center"
+echo "  NAVI-IMS — Integrated Management System"
 echo "════════════════════════════════════════════"
 echo ""
 echo "  🌐 Odoo:        https://${CODESPACE_NAME}-8069.app.github.dev"

@@ -4,7 +4,7 @@ from odoo import models, fields, api
 class PatrolIncident(models.Model):
     _name = "patrol.incident"
     _description = "เหตุการณ์ (Incident)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["mail.thread", "mail.activity.mixin", "inngest.mixin"]
     _order = "date_reported desc"
 
     name = fields.Char(string="เหตุการณ์", required=True, tracking=True)
@@ -97,14 +97,42 @@ class PatrolIncident(models.Model):
             else:
                 rec.resolution_time = 0
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        for rec in records:
+            rec._send_inngest_event("incident.created", {
+                "incident_id": rec.id,
+                "incident_type": rec.incident_type,
+                "severity": rec.severity,
+                "source": rec.equipment_id.equipment_type if rec.equipment_id else "manual",
+                "soldier_id": rec.soldier_id.id if rec.soldier_id else None,
+                "equipment_id": rec.equipment_id.id if rec.equipment_id else None,
+                "mission_id": rec.mission_id.id if rec.mission_id else None,
+                "lat": rec.lat,
+                "lng": rec.lng,
+                "description": rec.name,
+            })
+        return records
+
     def action_assign(self):
         self.write({"state": "assigned", "date_assigned": fields.Datetime.now()})
 
     def action_start(self):
         self.write({"state": "in_progress"})
+        for rec in self:
+            rec._send_inngest_event("incident.accepted", {
+                "incident_id": rec.id,
+            })
 
     def action_resolve(self):
         self.write({"state": "resolved", "date_resolved": fields.Datetime.now()})
+        for rec in self:
+            rec._send_inngest_event("incident.resolved", {
+                "incident_id": rec.id,
+                "note": rec.resolution_note or "",
+                "resolution_time": f"{rec.resolution_time:.0f} นาที",
+            })
 
     def action_close(self):
         self.write({"state": "closed"})

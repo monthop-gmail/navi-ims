@@ -125,6 +125,8 @@ services:
       ODOO_URL: ${ODOO_URL}
       REDIS_URL: ${REDIS_URL}
       CELERY_BROKER_URL: ${REDIS_URL}
+      NODE_SERVICE_URL: http://node-service:3000
+      PATROL_API_KEY: patrol-secret-key
     depends_on:
       - inngest
       - redis

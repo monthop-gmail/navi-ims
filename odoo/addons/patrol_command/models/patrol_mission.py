@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 class PatrolMission(models.Model):
     _name = "patrol.mission"
     _description = "ภารกิจ (Mission)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["mail.thread", "mail.activity.mixin", "inngest.mixin"]
     _order = "date_start desc, code"
 
     name = fields.Char(string="ชื่อภารกิจ", required=True, tracking=True)
@@ -85,15 +85,28 @@ class PatrolMission(models.Model):
             if not rec.soldier_ids:
                 raise UserError("ต้องมอบหมายกำลังพลก่อนเริ่มภารกิจ")
             rec.state = "active"
-            # Start all equipment streams
             rec.equipment_ids.filtered(lambda e: e.state == "ready").action_start_stream()
+            rec._send_inngest_event("mission.activated", {
+                "mission_id": rec.id,
+                "code": rec.code,
+                "name": rec.name,
+            })
 
     def action_complete(self):
         for rec in self:
             rec.state = "completed"
             rec.equipment_ids.action_stop_stream()
+            rec._send_inngest_event("mission.completed", {
+                "mission_id": rec.id,
+                "code": rec.code,
+            })
 
     def action_cancel(self):
         for rec in self:
             rec.state = "cancelled"
             rec.equipment_ids.action_stop_stream()
+            rec._send_inngest_event("mission.completed", {
+                "mission_id": rec.id,
+                "code": rec.code,
+                "cancelled": True,
+            })

@@ -1,3 +1,4 @@
+from . import inngest_mixin
 from . import patrol_unit
 from . import patrol_soldier
 from . import patrol_equipment

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Top Menu -->
+    <menuitem id="menu_patrol_root"
+              name="ศูนย์บัญชาการ"
+              web_icon="patrol_command,static/description/icon.png"
+              sequence="5"/>
+
+    <!-- Sub Menus -->
+    <menuitem id="menu_patrol_operations"
+              name="ปฏิบัติการ"
+              parent="menu_patrol_root"
+              sequence="10"/>
+
+    <menuitem id="menu_patrol_resources"
+              name="ทรัพยากร"
+              parent="menu_patrol_root"
+              sequence="20"/>
+
+    <menuitem id="menu_patrol_config"
+              name="ตั้งค่า"
+              parent="menu_patrol_root"
+              sequence="90"/>
+</odoo>

@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- === โครงสร้างหน่วย === -->
+        <record id="unit_company_1" model="patrol.unit">
+            <field name="name">กองร้อยที่ 1</field>
+            <field name="code">COY-01</field>
+            <field name="unit_type">company</field>
+        </record>
+
+        <record id="unit_platoon_1" model="patrol.unit">
+            <field name="name">หมวดที่ 1</field>
+            <field name="code">PLT-01</field>
+            <field name="unit_type">platoon</field>
+            <field name="parent_id" ref="unit_company_1"/>
+        </record>
+
+        <record id="unit_platoon_2" model="patrol.unit">
+            <field name="name">หมวดที่ 2</field>
+            <field name="code">PLT-02</field>
+            <field name="unit_type">platoon</field>
+            <field name="parent_id" ref="unit_company_1"/>
+        </record>
+
+        <record id="unit_squad_1" model="patrol.unit">
+            <field name="name">หมู่ที่ 1</field>
+            <field name="code">SQ-01</field>
+            <field name="unit_type">squad</field>
+            <field name="parent_id" ref="unit_platoon_1"/>
+        </record>
+
+        <record id="unit_squad_2" model="patrol.unit">
+            <field name="name">หมู่ที่ 2</field>
+            <field name="code">SQ-02</field>
+            <field name="unit_type">squad</field>
+            <field name="parent_id" ref="unit_platoon_1"/>
+        </record>
+
+        <record id="unit_squad_3" model="patrol.unit">
+            <field name="name">หมู่ที่ 3</field>
+            <field name="code">SQ-03</field>
+            <field name="unit_type">squad</field>
+            <field name="parent_id" ref="unit_platoon_2"/>
+        </record>
+
+        <!-- === กำลังพล === -->
+        <record id="soldier_cpt_somchai" model="patrol.soldier">
+            <field name="name">สมชาย วงศ์สกุล</field>
+            <field name="callsign">Command-1</field>
+            <field name="rank">cpt</field>
+            <field name="unit_id" ref="unit_company_1"/>
+        </record>
+
+        <record id="soldier_lt_prasit" model="patrol.soldier">
+            <field name="name">ประสิทธิ์ แก้วมณี</field>
+            <field name="callsign">Platoon-1</field>
+            <field name="rank">lt1</field>
+            <field name="unit_id" ref="unit_platoon_1"/>
+        </record>
+
+        <record id="soldier_sgt_wichai" model="patrol.soldier">
+            <field name="name">วิชัย ศรีสุข</field>
+            <field name="callsign">Alpha-Lead</field>
+            <field name="rank">sgt</field>
+            <field name="unit_id" ref="unit_squad_1"/>
+        </record>
+
+        <record id="soldier_alpha1" model="patrol.soldier">
+            <field name="name">ธนพล จันทร์แก้ว</field>
+            <field name="callsign">Alpha-1</field>
+            <field name="rank">pvt</field>
+            <field name="unit_id" ref="unit_squad_1"/>
+        </record>
+
+        <record id="soldier_alpha2" model="patrol.soldier">
+            <field name="name">สุรเดช พงษ์พิพัฒน์</field>
+            <field name="callsign">Alpha-2</field>
+            <field name="rank">pvt</field>
+            <field name="unit_id" ref="unit_squad_1"/>
+        </record>
+
+        <record id="soldier_bravo_lead" model="patrol.soldier">
+            <field name="name">อนุชา คำแก้ว</field>
+            <field name="callsign">Bravo-Lead</field>
+            <field name="rank">sgt</field>
+            <field name="unit_id" ref="unit_squad_2"/>
+        </record>
+
+        <record id="soldier_bravo1" model="patrol.soldier">
+            <field name="name">พิชัย รุ่งเรือง</field>
+            <field name="callsign">Bravo-1</field>
+            <field name="rank">pvt</field>
+            <field name="unit_id" ref="unit_squad_2"/>
+        </record>
+
+        <!-- Set commanders -->
+        <record id="unit_company_1" model="patrol.unit">
+            <field name="commander_id" ref="soldier_cpt_somchai"/>
+        </record>
+        <record id="unit_platoon_1" model="patrol.unit">
+            <field name="commander_id" ref="soldier_lt_prasit"/>
+        </record>
+        <record id="unit_squad_1" model="patrol.unit">
+            <field name="commander_id" ref="soldier_sgt_wichai"/>
+        </record>
+        <record id="unit_squad_2" model="patrol.unit">
+            <field name="commander_id" ref="soldier_bravo_lead"/>
+        </record>
+
+        <!-- === อุปกรณ์ === -->
+        <record id="equip_fixed_cam_01" model="patrol.equipment">
+            <field name="name">CAM-FIXED-01</field>
+            <field name="equipment_type">fixed_camera</field>
+            <field name="protocol">rtsp</field>
+            <field name="stream_path">fixed/cam-01</field>
+            <field name="gps_lat">13.7563</field>
+            <field name="gps_lng">100.5018</field>
+            <field name="state">ready</field>
+        </record>
+
+        <record id="equip_fixed_cam_02" model="patrol.equipment">
+            <field name="name">CAM-FIXED-02</field>
+            <field name="equipment_type">fixed_camera</field>
+            <field name="protocol">rtsp</field>
+            <field name="stream_path">fixed/cam-02</field>
+            <field name="gps_lat">13.7580</field>
+            <field name="gps_lng">100.5040</field>
+            <field name="state">ready</field>
+        </record>
+
+        <record id="equip_drone_01" model="patrol.equipment">
+            <field name="name">DRONE-01</field>
+            <field name="equipment_type">drone</field>
+            <field name="protocol">other</field>
+            <field name="stream_path">drone/drone-01</field>
+            <field name="state">draft</field>
+        </record>
+
+        <record id="equip_bodycam_alpha1" model="patrol.equipment">
+            <field name="name">BCAM-Alpha-1</field>
+            <field name="equipment_type">body_camera</field>
+            <field name="protocol">webrtc</field>
+            <field name="stream_path">patrol/Alpha-1</field>
+            <field name="assigned_soldier_id" ref="soldier_alpha1"/>
+            <field name="state">ready</field>
+        </record>
+
+        <record id="equip_bodycam_alpha2" model="patrol.equipment">
+            <field name="name">BCAM-Alpha-2</field>
+            <field name="equipment_type">body_camera</field>
+            <field name="protocol">webrtc</field>
+            <field name="stream_path">patrol/Alpha-2</field>
+            <field name="assigned_soldier_id" ref="soldier_alpha2"/>
+            <field name="state">ready</field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,8 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_patrol_unit,patrol.unit.user,model_patrol_unit,base.group_user,1,1,1,1
+access_patrol_soldier,patrol.soldier.user,model_patrol_soldier,base.group_user,1,1,1,1
+access_patrol_equipment,patrol.equipment.user,model_patrol_equipment,base.group_user,1,1,1,1
+access_patrol_mission,patrol.mission.user,model_patrol_mission,base.group_user,1,1,1,1
+access_patrol_gps_log,patrol.gps.log.user,model_patrol_gps_log,base.group_user,1,1,1,1
+access_patrol_incident,patrol.incident.user,model_patrol_incident,base.group_user,1,1,1,1
+access_patrol_camera_feed,patrol.camera.feed.user,model_patrol_camera_feed,base.group_user,1,1,1,1

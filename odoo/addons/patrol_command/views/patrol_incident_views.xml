@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree View -->
+    <record id="patrol_incident_view_tree" model="ir.ui.view">
+        <field name="name">patrol.incident.tree</field>
+        <field name="model">patrol.incident</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="severity == 'critical'"
+                  decoration-warning="severity == 'high'"
+                  decoration-muted="state == 'closed'">
+                <field name="name"/>
+                <field name="incident_type"/>
+                <field name="severity" widget="badge"
+                       decoration-danger="severity == 'critical'"
+                       decoration-warning="severity == 'high'"
+                       decoration-info="severity == 'medium'"
+                       decoration-success="severity == 'low'"/>
+                <field name="state" widget="badge"/>
+                <field name="soldier_id"/>
+                <field name="mission_id"/>
+                <field name="assigned_to"/>
+                <field name="date_reported"/>
+                <field name="resolution_time" widget="float_time"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="patrol_incident_view_form" model="ir.ui.view">
+        <field name="name">patrol.incident.form</field>
+        <field name="model">patrol.incident</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_assign" string="มอบหมาย" type="object"
+                            invisible="state != 'new'" class="btn-primary"/>
+                    <button name="action_start" string="เริ่มดำเนินการ" type="object"
+                            invisible="state != 'assigned'" class="btn-primary"/>
+                    <button name="action_resolve" string="แก้ไขแล้ว" type="object"
+                            invisible="state != 'in_progress'" class="btn-success"/>
+                    <button name="action_close" string="ปิด" type="object"
+                            invisible="state != 'resolved'" class="btn-secondary"/>
+                    <button name="action_escalate" string="Escalate" type="object"
+                            invisible="state in ('resolved','closed')" class="btn-warning"/>
+                    <field name="state" widget="statusbar" statusbar_visible="new,assigned,in_progress,resolved,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="ชื่อเหตุการณ์"/></h1>
+                    </div>
+                    <group>
+                        <group string="ข้อมูลเหตุการณ์">
+                            <field name="incident_type"/>
+                            <field name="severity"/>
+                            <field name="mission_id"/>
+                            <field name="soldier_id"/>
+                            <field name="equipment_id"/>
+                        </group>
+                        <group string="การจัดการ">
+                            <field name="assigned_to"/>
+                            <field name="escalated_to"/>
+                            <field name="date_reported"/>
+                            <field name="date_assigned"/>
+                            <field name="date_resolved"/>
+                            <field name="resolution_time" widget="float_time"/>
+                        </group>
+                    </group>
+                    <group string="ตำแหน่ง">
+                        <group>
+                            <field name="lat"/>
+                            <field name="lng"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="รายละเอียด">
+                            <field name="description"/>
+                            <group invisible="incident_type != 'ai_detection'">
+                                <field name="ai_type"/>
+                                <field name="ai_confidence" widget="progressbar"/>
+                            </group>
+                        </page>
+                        <page string="หลักฐาน">
+                            <group string="ภาพหลักฐาน">
+                                <field name="image_ids" widget="many2many_binary"/>
+                            </group>
+                            <group string="ภาพยืนยันการแก้ไข">
+                                <field name="proof_image_ids" widget="many2many_binary"/>
+                            </group>
+                        </page>
+                        <page string="บันทึก">
+                            <field name="resolution_note" placeholder="บันทึกการแก้ไข..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Kanban View -->
+    <record id="patrol_incident_view_kanban" model="ir.ui.view">
+        <field name="name">patrol.incident.kanban</field>
+        <field name="model">patrol.incident</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state">
+                <field name="name"/>
+                <field name="incident_type"/>
+                <field name="severity"/>
+                <field name="state"/>
+                <field name="soldier_id"/>
+                <field name="assigned_to"/>
+                <field name="priority"/>
+                <templates>
+                    <t t-name="card">
+                        <field name="priority" widget="priority"/>
+                        <strong><field name="name"/></strong>
+                        <div><field name="incident_type"/> — <field name="severity"/></div>
+                        <div class="text-muted" t-if="record.soldier_id.value">
+                            <field name="soldier_id"/>
+                        </div>
+                        <div t-if="record.assigned_to.value">
+                            มอบหมาย: <field name="assigned_to"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="patrol_incident_action" model="ir.actions.act_window">
+        <field name="name">เหตุการณ์</field>
+        <field name="res_model">patrol.incident</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+
+    <menuitem id="menu_patrol_incident"
+              name="เหตุการณ์"
+              parent="menu_patrol_operations"
+              action="patrol_incident_action"
+              sequence="20"/>
+</odoo>

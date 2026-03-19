@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree View -->
+    <record id="patrol_mission_view_tree" model="ir.ui.view">
+        <field name="name">patrol.mission.tree</field>
+        <field name="model">patrol.mission</field>
+        <field name="arch" type="xml">
+            <list decoration-info="state == 'draft'"
+                  decoration-warning="state == 'planned'"
+                  decoration-success="state == 'active'"
+                  decoration-muted="state in ('completed','cancelled')">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="mission_type"/>
+                <field name="state" widget="badge"/>
+                <field name="commander_id"/>
+                <field name="soldier_count"/>
+                <field name="equipment_count"/>
+                <field name="incident_count"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="patrol_mission_view_form" model="ir.ui.view">
+        <field name="name">patrol.mission.form</field>
+        <field name="model">patrol.mission</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_plan" string="วางแผน" type="object"
+                            invisible="state != 'draft'" class="btn-primary"/>
+                    <button name="action_activate" string="เริ่มปฏิบัติการ" type="object"
+                            invisible="state != 'planned'" class="btn-success"/>
+                    <button name="action_complete" string="เสร็จสิ้น" type="object"
+                            invisible="state != 'active'" class="btn-primary"/>
+                    <button name="action_cancel" string="ยกเลิก" type="object"
+                            invisible="state in ('completed','cancelled')" class="btn-secondary"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,planned,active,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="code" class="oe_inline me-2" readonly="1"/>
+                            <field name="name" placeholder="ชื่อภารกิจ"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="ภารกิจ">
+                            <field name="mission_type"/>
+                            <field name="commander_id"/>
+                            <field name="unit_id"/>
+                            <field name="color" widget="color_picker"/>
+                        </group>
+                        <group string="กำหนดเวลา">
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="กำลังพล" name="soldiers">
+                            <field name="soldier_ids" widget="many2many_tags"/>
+                            <field name="soldier_ids" mode="list">
+                                <list>
+                                    <field name="callsign"/>
+                                    <field name="rank"/>
+                                    <field name="name"/>
+                                    <field name="is_online"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="อุปกรณ์" name="equipment">
+                            <field name="equipment_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="equipment_type"/>
+                                    <field name="stream_path"/>
+                                    <field name="state"/>
+                                    <field name="is_streaming"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="เหตุการณ์" name="incidents">
+                            <field name="incident_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="incident_type"/>
+                                    <field name="severity"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="date_reported"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="พื้นที่ปฏิบัติการ" name="area">
+                            <group>
+                                <field name="area_geojson" widget="text"/>
+                                <field name="route_geojson" widget="text"/>
+                            </group>
+                        </page>
+                        <page string="รายละเอียด" name="description">
+                            <field name="description"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Kanban View -->
+    <record id="patrol_mission_view_kanban" model="ir.ui.view">
+        <field name="name">patrol.mission.kanban</field>
+        <field name="model">patrol.mission</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="state"/>
+                <field name="mission_type"/>
+                <field name="soldier_count"/>
+                <field name="incident_count"/>
+                <field name="color"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="#{record.color.raw_value ? 'border-start border-4' : ''}"
+                             t-attf-style="border-color: var(--o-kanban-color-#{record.color.raw_value}) !important;">
+                            <strong><field name="code"/></strong>
+                            <div><field name="name"/></div>
+                            <div class="text-muted"><field name="mission_type"/></div>
+                            <div class="mt-1">
+                                <span class="badge text-bg-info me-1">
+                                    <field name="soldier_count"/> คน
+                                </span>
+                                <span t-if="record.incident_count.raw_value > 0"
+                                      class="badge text-bg-danger">
+                                    <field name="incident_count"/> เหตุการณ์
+                                </span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="patrol_mission_action" model="ir.actions.act_window">
+        <field name="name">ภารกิจ</field>
+        <field name="res_model">patrol.mission</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+
+    <menuitem id="menu_patrol_mission"
+              name="ภารกิจ"
+              parent="menu_patrol_operations"
+              action="patrol_mission_action"
+              sequence="10"/>
+
+    <!-- Sequence -->
+    <record id="seq_patrol_mission" model="ir.sequence">
+        <field name="name">Patrol Mission</field>
+        <field name="code">patrol.mission</field>
+        <field name="prefix">MSN-%(year)s-</field>
+        <field name="padding">4</field>
+    </record>
+</odoo>

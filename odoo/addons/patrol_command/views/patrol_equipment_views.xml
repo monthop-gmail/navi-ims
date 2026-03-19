@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree View -->
+    <record id="patrol_equipment_view_tree" model="ir.ui.view">
+        <field name="name">patrol.equipment.tree</field>
+        <field name="model">patrol.equipment</field>
+        <field name="arch" type="xml">
+            <list decoration-success="is_streaming == True">
+                <field name="name"/>
+                <field name="equipment_type"/>
+                <field name="protocol"/>
+                <field name="stream_path"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'ready'"
+                       decoration-success="state == 'active'"
+                       decoration-danger="state == 'maintenance'"/>
+                <field name="is_streaming"/>
+                <field name="assigned_soldier_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="patrol_equipment_view_form" model="ir.ui.view">
+        <field name="name">patrol.equipment.form</field>
+        <field name="model">patrol.equipment</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_start_stream" string="เริ่ม Stream" type="object"
+                            class="btn-primary"
+                            invisible="is_streaming == True"/>
+                    <button name="action_stop_stream" string="หยุด Stream" type="object"
+                            class="btn-danger"
+                            invisible="is_streaming == False"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,ready,active"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="ชื่ออุปกรณ์"/></h1>
+                    </div>
+                    <group>
+                        <group string="ข้อมูลอุปกรณ์">
+                            <field name="equipment_type"/>
+                            <field name="protocol"/>
+                            <field name="assigned_soldier_id"/>
+                        </group>
+                        <group string="การเชื่อมต่อ">
+                            <field name="stream_url" widget="url"/>
+                            <field name="stream_path"/>
+                            <field name="capture_interval"/>
+                            <field name="is_streaming"/>
+                        </group>
+                    </group>
+                    <group string="ตำแหน่ง">
+                        <group>
+                            <field name="gps_lat"/>
+                            <field name="gps_lng"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="patrol_equipment_action" model="ir.actions.act_window">
+        <field name="name">อุปกรณ์</field>
+        <field name="res_model">patrol.equipment</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_patrol_equipment"
+              name="อุปกรณ์"
+              parent="menu_patrol_resources"
+              action="patrol_equipment_action"
+              sequence="20"/>
+</odoo>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree View -->
+    <record id="patrol_gps_log_view_tree" model="ir.ui.view">
+        <field name="name">patrol.gps.log.tree</field>
+        <field name="model">patrol.gps.log</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="recorded_at"/>
+                <field name="soldier_id"/>
+                <field name="equipment_id"/>
+                <field name="mission_id"/>
+                <field name="lat"/>
+                <field name="lng"/>
+                <field name="accuracy"/>
+                <field name="altitude"/>
+                <field name="speed"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="patrol_gps_log_action" model="ir.actions.act_window">
+        <field name="name">GPS Logs</field>
+        <field name="res_model">patrol.gps.log</field>
+        <field name="view_mode">list</field>
+        <field name="limit">200</field>
+    </record>
+
+    <menuitem id="menu_patrol_gps_log"
+              name="GPS Logs"
+              parent="menu_patrol_operations"
+              action="patrol_gps_log_action"
+              sequence="30"/>
+</odoo>

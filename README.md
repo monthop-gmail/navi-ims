@@ -2,7 +2,7 @@
 
 ระบบศูนย์บัญชาการลาดตะเวน บน Odoo 19 — รวม GPS Tracking, Live Video, AI Detection, Incident Management และ Equipment Maintenance ในที่เดียว
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/monthop-gmail/navi-cc?quickstart=1)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/monthop-gmail/navi-ims?quickstart=1)
 
 ## สถาปัตยกรรม
 
@@ -62,7 +62,7 @@
 ### Docker Compose (Local)
 
 ```bash
-git clone https://github.com/monthop-gmail/navi-cc.git
+git clone https://github.com/monthop-gmail/navi-ims.git
 cd navi-cc
 cp .env.example .env
 

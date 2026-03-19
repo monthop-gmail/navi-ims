@@ -161,6 +161,8 @@ services:
       INNGEST_API_URL: http://inngest:8288
       MEDIAMTX_API_URL: http://mediamtx:9997
       MEDIAMTX_RTSP_URL: rtsp://mediamtx:8554
+      ODOO_URL: ${ODOO_URL}
+      PATROL_API_KEY: patrol-secret-key
     volumes:
       - shared_media:/media
     depends_on:

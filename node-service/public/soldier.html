@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>NAVI-CC — ทหารลาดตะเวน</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0d1117; color: #e6edf3;
+            height: 100vh; overflow: hidden;
+        }
+
+        /* Setup Screen */
+        #setup {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            height: 100vh; padding: 20px;
+        }
+        #setup h1 { font-size: 1.5rem; margin-bottom: 20px; color: #00ff88; }
+        #setup input {
+            width: 100%; max-width: 300px; padding: 12px;
+            margin: 8px 0; border-radius: 8px;
+            border: 1px solid #30363d; background: #161b22;
+            color: #e6edf3; font-size: 1rem;
+        }
+        #setup button {
+            width: 100%; max-width: 300px; padding: 14px;
+            margin-top: 16px; border: none; border-radius: 8px;
+            background: #00ff88; color: #0d1117;
+            font-size: 1.1rem; font-weight: bold; cursor: pointer;
+        }
+
+        /* Active Screen */
+        #active { display: none; height: 100vh; position: relative; }
+
+        /* Status Bar */
+        .status-bar {
+            position: absolute; top: 0; left: 0; right: 0;
+            padding: 8px 16px; z-index: 10;
+            background: rgba(13,17,23,0.85);
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.8rem;
+        }
+        .status-bar .callsign { color: #00ff88; font-weight: bold; font-size: 1rem; }
+        .status-bar .gps { color: #8b949e; font-family: monospace; }
+        .conn-dot {
+            display: inline-block; width: 8px; height: 8px;
+            border-radius: 50%; margin-right: 4px;
+        }
+        .conn-dot.connected { background: #00ff88; box-shadow: 0 0 4px #00ff88; }
+        .conn-dot.disconnected { background: #f85149; }
+
+        /* Map */
+        #soldier-map {
+            width: 100%; height: 100%;
+        }
+
+        /* SOS Button */
+        .sos-btn {
+            position: absolute; bottom: 30px; right: 20px;
+            width: 80px; height: 80px; border-radius: 50%;
+            border: 3px solid #fff; background: #da3633;
+            color: #fff; font-weight: bold; font-size: 0.9rem;
+            z-index: 10; cursor: pointer;
+            box-shadow: 0 0 20px rgba(218,54,51,0.5);
+            transition: transform 0.1s;
+        }
+        .sos-btn:active { transform: scale(0.95); }
+        .sos-btn.active {
+            background: #ff0000;
+            animation: sos-pulse 0.5s infinite alternate;
+        }
+
+        @keyframes sos-pulse {
+            from { box-shadow: 0 0 20px rgba(255,0,0,0.5); }
+            to   { box-shadow: 0 0 40px rgba(255,0,0,0.9); }
+        }
+
+        /* Stop Button */
+        .stop-btn {
+            position: absolute; bottom: 30px; left: 20px;
+            padding: 12px 20px; border-radius: 8px;
+            border: 1px solid #f85149; background: rgba(248,81,73,0.1);
+            color: #f85149; font-size: 0.9rem; z-index: 10; cursor: pointer;
+        }
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+</head>
+<body>
+
+<!-- Setup Screen -->
+<div id="setup">
+    <h1>NAVI-CC</h1>
+    <input id="callsign" placeholder="สัญญาณเรียกขาน (เช่น Alpha-1)" autocomplete="off"/>
+    <input id="soldierName" placeholder="ชื่อ-สกุล" autocomplete="off"/>
+    <button onclick="startPatrol()">เริ่มลาดตะเวน</button>
+</div>
+
+<!-- Active Screen -->
+<div id="active">
+    <div class="status-bar">
+        <div>
+            <span class="conn-dot" id="connDot"></span>
+            <span class="callsign" id="displayCallsign"></span>
+        </div>
+        <div class="gps" id="gpsDisplay">รอ GPS...</div>
+    </div>
+
+    <div id="soldier-map"></div>
+
+    <button class="sos-btn" id="sosBtn"
+            onpointerdown="sosStart()" onpointerup="sosEnd()" onpointerleave="sosEnd()">
+        SOS
+    </button>
+    <button class="stop-btn" onclick="stopPatrol()">หยุด</button>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+let socket = null;
+let map = null;
+let marker = null;
+let trackLine = null;
+let trackPoints = [];
+let watchId = null;
+let currentCallsign = "";
+let sosActive = false;
+let sosTimer = null;
+
+function startPatrol() {
+    currentCallsign = document.getElementById("callsign").value.trim();
+    const name = document.getElementById("soldierName").value.trim();
+
+    if (!currentCallsign) {
+        alert("กรุณาใส่สัญญาณเรียกขาน");
+        return;
+    }
+
+    document.getElementById("setup").style.display = "none";
+    document.getElementById("active").style.display = "block";
+    document.getElementById("displayCallsign").textContent = currentCallsign;
+
+    // Init map
+    map = L.map("soldier-map").setView([13.7563, 100.5018], 15);
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        maxZoom: 19,
+    }).addTo(map);
+
+    // Connect Socket.IO
+    socket = io({ transports: ["websocket"] });
+
+    socket.on("connect", () => {
+        document.getElementById("connDot").className = "conn-dot connected";
+        socket.emit("soldier:join", { callsign: currentCallsign, name: name || currentCallsign });
+    });
+
+    socket.on("disconnect", () => {
+        document.getElementById("connDot").className = "conn-dot disconnected";
+    });
+
+    // Start GPS
+    if (navigator.geolocation) {
+        watchId = navigator.geolocation.watchPosition(
+            onGpsUpdate,
+            (err) => {
+                document.getElementById("gpsDisplay").textContent = "GPS error: " + err.message;
+            },
+            { enableHighAccuracy: true, maximumAge: 3000 }
+        );
+    }
+}
+
+function onGpsUpdate(pos) {
+    const { latitude: lat, longitude: lng, accuracy, altitude, speed } = pos.coords;
+
+    // Update display
+    document.getElementById("gpsDisplay").textContent =
+        `${lat.toFixed(6)}, ${lng.toFixed(6)} (±${Math.round(accuracy)}m)`;
+
+    // Send to server
+    if (socket && socket.connected) {
+        socket.emit("soldier:gps", { lat, lng, accuracy, altitude, speed });
+    }
+
+    // Update map
+    if (!marker) {
+        marker = L.circleMarker([lat, lng], {
+            radius: 8, fillColor: "#00ff88", fillOpacity: 1,
+            color: "#fff", weight: 2,
+        }).addTo(map);
+        map.setView([lat, lng], 16);
+    } else {
+        marker.setLatLng([lat, lng]);
+    }
+
+    // Track line
+    trackPoints.push([lat, lng]);
+    if (trackPoints.length > 1) {
+        if (trackLine) trackLine.remove();
+        trackLine = L.polyline(trackPoints, {
+            color: "#00ff88", weight: 2, opacity: 0.6,
+        }).addTo(map);
+    }
+
+    map.panTo([lat, lng]);
+}
+
+function sosStart() {
+    sosTimer = setTimeout(() => {
+        sosActive = true;
+        document.getElementById("sosBtn").classList.add("active");
+
+        if (socket && socket.connected && marker) {
+            const ll = marker.getLatLng();
+            socket.emit("soldier:sos", { lat: ll.lat, lng: ll.lng });
+        }
+    }, 1000); // กดค้าง 1 วินาที
+}
+
+function sosEnd() {
+    if (sosTimer) { clearTimeout(sosTimer); sosTimer = null; }
+
+    if (sosActive) {
+        sosActive = false;
+        document.getElementById("sosBtn").classList.remove("active");
+        if (socket) socket.emit("soldier:sos-cancel");
+    }
+}
+
+function stopPatrol() {
+    if (watchId) navigator.geolocation.clearWatch(watchId);
+    if (socket) socket.disconnect();
+    if (map) map.remove();
+
+    trackPoints = [];
+    marker = null;
+    trackLine = null;
+
+    document.getElementById("setup").style.display = "flex";
+    document.getElementById("active").style.display = "none";
+}
+</script>
+</body>
+</html>

@@ -10,12 +10,17 @@
  */
 
 import express from "express";
+import http from "http";
 import { Queue, Worker } from "bullmq";
 import IORedis from "ioredis";
 import { writeFile, mkdir, readFile } from "fs/promises";
-import { join } from "path";
+import { join, dirname } from "path";
 import { spawn } from "child_process";
 import { existsSync } from "fs";
+import { fileURLToPath } from "url";
+import { setupGpsRelay } from "./gps-relay.mjs";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const REDIS_URL = process.env.REDIS_URL || "redis://redis:6379/0";
 const INNGEST_API_URL = process.env.INNGEST_API_URL || "http://inngest:8288";
@@ -269,7 +274,16 @@ app.get("/api/queue/stats", async (req, res) => {
 
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
-app.listen(3000, () => {
-  console.log("Camera Ingest Service running on :3000");
+// Serve soldier.html for mobile testing
+app.use("/patrol", express.static(join(__dirname, "../public")));
+
+// ─── HTTP Server + Socket.IO ───
+
+const server = http.createServer(app);
+const io = setupGpsRelay(server);
+
+server.listen(3000, () => {
+  console.log("Camera Ingest + GPS Relay running on :3000");
   console.log(`MediaMTX RTSP: ${MEDIAMTX_RTSP_URL}`);
+  console.log("Soldier page: http://localhost:3000/patrol/soldier.html");
 });

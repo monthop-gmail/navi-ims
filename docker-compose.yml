@@ -1,0 +1,171 @@
+services:
+
+  # ============================================================
+  #  DATABASES
+  # ============================================================
+
+  # --- PostgreSQL สำหรับ Odoo ---
+  postgres-odoo:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pg_odoo_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # --- PostgreSQL สำหรับ Inngest ---
+  postgres-inngest:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: inngest
+      POSTGRES_PASSWORD: inngest_secret
+      POSTGRES_DB: inngest
+    volumes:
+      - pg_inngest_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U inngest"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # --- Redis (shared: Celery broker + Bull queue) ---
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================
+  #  CORE: Odoo 19
+  # ============================================================
+
+  odoo:
+    image: odoo:19.0
+    ports:
+      - "8069:8069"
+      - "8072:8072"
+    environment:
+      HOST: postgres-odoo
+      PORT: 5432
+      USER: ${POSTGRES_USER}
+      PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - odoo_data:/var/lib/odoo
+      - ./odoo/addons:/mnt/extra-addons
+      - ./odoo/odoo.conf:/etc/odoo/odoo.conf:ro
+    depends_on:
+      postgres-odoo:
+        condition: service_healthy
+
+  # ============================================================
+  #  INNGEST SERVER (self-hosted)
+  # ============================================================
+
+  inngest:
+    image: inngest/inngest:latest
+    command: inngest start
+    ports:
+      - "8288:8288"
+    environment:
+      INNGEST_EVENT_KEY: ${INNGEST_EVENT_KEY}
+      INNGEST_SIGNING_KEY: ${INNGEST_SIGNING_KEY}
+      INNGEST_POSTGRES_URI: ${INNGEST_POSTGRES_URI}
+      INNGEST_REDIS_URI: ${REDIS_URL}
+    depends_on:
+      postgres-inngest:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ============================================================
+  #  INNGEST WORKER (Python — serve Inngest functions)
+  #  รับ HTTP call จาก Inngest Server แล้วรัน workflow
+  # ============================================================
+
+  inngest-worker:
+    build: ./inngest-worker
+    ports:
+      - "8100:8100"
+    environment:
+      INNGEST_EVENT_KEY: ${INNGEST_EVENT_KEY}
+      INNGEST_SIGNING_KEY: ${INNGEST_SIGNING_KEY}
+      INNGEST_API_BASE_URL: http://inngest:8288
+      INNGEST_EVENT_API_BASE_URL: http://inngest:8288
+      INNGEST_DEV: "0"
+      INNGEST_SERVE_ORIGIN: http://inngest-worker:8100
+      ODOO_URL: ${ODOO_URL}
+      REDIS_URL: ${REDIS_URL}
+      CELERY_BROKER_URL: ${REDIS_URL}
+    depends_on:
+      - inngest
+      - redis
+
+  # ============================================================
+  #  CELERY WORKER (Python — งานหนัก: AI + Video)
+  # ============================================================
+
+  celery-worker:
+    build: ./celery-worker
+    deploy:
+      replicas: 2
+    environment:
+      CELERY_BROKER_URL: ${REDIS_URL}
+      CELERY_RESULT_BACKEND: ${REDIS_URL}
+      ODOO_URL: ${ODOO_URL}
+    volumes:
+      - shared_media:/media
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # ============================================================
+  #  NODE SERVICE (Bull — รับภาพจากกล้อง)
+  # ============================================================
+
+  node-service:
+    build: ./node-service
+    ports:
+      - "3000:3000"
+    environment:
+      REDIS_URL: ${REDIS_URL}
+      INNGEST_EVENT_KEY: ${INNGEST_EVENT_KEY}
+      INNGEST_API_URL: http://inngest:8288
+    volumes:
+      - shared_media:/media
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # ============================================================
+  #  MONITORING (optional)
+  # ============================================================
+
+  # Bull Board — UI ดูสถานะคิว Bull
+  bull-board:
+    build:
+      context: ./node-service
+      dockerfile: Dockerfile.bull-board
+    ports:
+      - "3100:3100"
+    environment:
+      REDIS_URL: ${REDIS_URL}
+    depends_on:
+      redis:
+        condition: service_healthy
+
+volumes:
+  pg_odoo_data:
+  pg_inngest_data:
+  redis_data:
+  odoo_data:
+  shared_media:

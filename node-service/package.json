@@ -1,0 +1,17 @@
+{
+  "name": "camera-ingest-service",
+  "version": "1.0.0",
+  "description": "Bull queue - รับภาพจากกล้อง ส่งเข้าคิว Celery วิเคราะห์",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.mjs",
+    "dev": "node --watch src/index.mjs"
+  },
+  "dependencies": {
+    "bullmq": "^5.34.8",
+    "express": "^4.21.2",
+    "ioredis": "^5.4.2",
+    "node-fetch": "^3.3.2",
+    "fluent-ffmpeg": "^2.1.3"
+  }
+}

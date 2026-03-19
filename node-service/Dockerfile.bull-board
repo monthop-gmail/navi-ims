@@ -1,0 +1,11 @@
+FROM node:22-slim
+
+WORKDIR /app
+
+RUN npm init -y && npm install @bull-board/express @bull-board/api bullmq express ioredis
+
+COPY src/bull-board.mjs src/bull-board.mjs
+
+EXPOSE 3100
+
+CMD ["node", "src/bull-board.mjs"]

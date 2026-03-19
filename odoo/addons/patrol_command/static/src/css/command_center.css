@@ -1,0 +1,142 @@
+/* Command Center Dashboard — Dark Theme */
+
+.patrol-cc {
+    background: #0d1117;
+    color: #e6edf3;
+    height: calc(100vh - 46px); /* minus Odoo navbar */
+}
+
+/* Sidebar */
+.patrol-sidebar {
+    width: 320px;
+    min-width: 320px;
+    background: #161b22;
+    border-right: 1px solid #30363d;
+    overflow: hidden;
+}
+
+.patrol-stats {
+    background: #0d1117;
+    border-bottom: 1px solid #30363d;
+}
+
+.patrol-stat-num {
+    font-size: 1.5rem;
+    font-weight: bold;
+    font-family: monospace;
+}
+
+/* Soldier List */
+.patrol-soldier-item {
+    cursor: pointer;
+    transition: background 0.15s;
+    border-color: #21262d !important;
+}
+
+.patrol-soldier-item:hover {
+    background: #21262d;
+}
+
+.patrol-soldier-item.active {
+    background: #1f3a2f;
+    border-left: 3px solid #00ff88 !important;
+}
+
+/* Status Dots */
+.patrol-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.patrol-dot.online {
+    background: #00ff88;
+    box-shadow: 0 0 6px #00ff88;
+}
+
+.patrol-dot.offline {
+    background: #484f58;
+}
+
+/* Incidents */
+.patrol-incidents {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.patrol-incident-item {
+    cursor: pointer;
+    border-color: #21262d !important;
+}
+
+.patrol-incident-item:hover {
+    background: #2d1b1b;
+}
+
+/* Map */
+.patrol-map-container {
+    position: relative;
+}
+
+#patrol-map {
+    background: #0d1117;
+}
+
+/* Leaflet overrides for dark theme */
+.leaflet-popup-content-wrapper {
+    background: #161b22;
+    color: #e6edf3;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+}
+
+.leaflet-popup-tip {
+    background: #161b22;
+    border: 1px solid #30363d;
+}
+
+.leaflet-control-zoom a {
+    background: #161b22 !important;
+    color: #e6edf3 !important;
+    border-color: #30363d !important;
+}
+
+/* SOS Pulse Animation */
+@keyframes sos-blink {
+    from { opacity: 1; transform: scale(1); }
+    to   { opacity: 0.5; transform: scale(1.3); }
+}
+
+.sos-pulse > div {
+    animation: sos-blink 0.5s infinite alternate;
+}
+
+/* Mission filter */
+.patrol-mission-filter .form-select {
+    font-size: 0.85rem;
+}
+
+/* Map controls */
+.patrol-map-controls .btn {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+.patrol-map-controls .btn:hover {
+    opacity: 1;
+}
+
+/* Scrollbar dark */
+.patrol-sidebar ::-webkit-scrollbar {
+    width: 6px;
+}
+
+.patrol-sidebar ::-webkit-scrollbar-track {
+    background: #161b22;
+}
+
+.patrol-sidebar ::-webkit-scrollbar-thumb {
+    background: #30363d;
+    border-radius: 3px;
+}

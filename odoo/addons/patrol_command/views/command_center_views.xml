@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Client Action -->
+    <record id="action_command_center" model="ir.actions.client">
+        <field name="name">ศูนย์บัญชาการ</field>
+        <field name="tag">patrol_command_center</field>
+    </record>
+
+    <!-- Menu -->
+    <menuitem id="menu_command_center"
+              name="ศูนย์บัญชาการ"
+              parent="menu_patrol_operations"
+              action="action_command_center"
+              sequence="1"/>
+</odoo>

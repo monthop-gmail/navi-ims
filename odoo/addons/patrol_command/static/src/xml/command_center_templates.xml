@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+
+<t t-name="patrol_command.CommandCenterDashboard">
+    <div class="patrol-cc d-flex h-100">
+
+        <!-- Sidebar -->
+        <div class="patrol-sidebar d-flex flex-column">
+
+            <!-- Stats Header -->
+            <div class="patrol-stats p-2">
+                <div class="d-flex justify-content-between text-center">
+                    <div class="patrol-stat">
+                        <div class="patrol-stat-num text-success">
+                            <t t-esc="state.stats.online_soldiers || 0"/>
+                        </div>
+                        <small>Online</small>
+                    </div>
+                    <div class="patrol-stat">
+                        <div class="patrol-stat-num text-info">
+                            <t t-esc="state.stats.total_soldiers || 0"/>
+                        </div>
+                        <small>กำลังพล</small>
+                    </div>
+                    <div class="patrol-stat">
+                        <div class="patrol-stat-num text-warning">
+                            <t t-esc="state.stats.active_incidents || 0"/>
+                        </div>
+                        <small>เหตุการณ์</small>
+                    </div>
+                    <div class="patrol-stat">
+                        <div class="patrol-stat-num text-danger">
+                            <t t-esc="state.stats.active_sos || 0"/>
+                        </div>
+                        <small>SOS</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mission Filter -->
+            <div class="patrol-mission-filter p-2 border-bottom">
+                <select class="form-select form-select-sm bg-dark text-light border-secondary"
+                        t-on-change="(ev) => this.selectMission(ev.target.value)">
+                    <option value="">ทุกภารกิจ</option>
+                    <t t-foreach="state.missions" t-as="m" t-key="m.id">
+                        <option t-att-value="m.id">
+                            <t t-esc="m.code"/> - <t t-esc="m.name"/>
+                        </option>
+                    </t>
+                </select>
+            </div>
+
+            <!-- Soldier List -->
+            <div class="patrol-soldier-list flex-grow-1 overflow-auto">
+                <div class="px-2 py-1 text-muted small border-bottom">
+                    ทหารออนไลน์ (<t t-esc="onlineSoldiers.length"/>)
+                </div>
+                <t t-foreach="onlineSoldiers" t-as="s" t-key="s.id">
+                    <div class="patrol-soldier-item p-2 border-bottom"
+                         t-att-class="{'active': state.selectedSoldierId === s.id}"
+                         t-on-click="() => this.selectSoldier(s)">
+                        <div class="d-flex align-items-center">
+                            <span class="patrol-dot online me-2"></span>
+                            <div class="flex-grow-1">
+                                <strong><t t-esc="s.callsign"/></strong>
+                                <div class="text-muted small"><t t-esc="s.name"/></div>
+                                <div class="text-muted small" t-if="s.last_lat">
+                                    GPS: <t t-esc="(s.last_lat || 0).toFixed(5)"/>,
+                                    <t t-esc="(s.last_lng || 0).toFixed(5)"/>
+                                </div>
+                            </div>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-success btn-sm"
+                                        title="แสดงเส้นทาง"
+                                        t-on-click.stop="() => this.showTrack(s.id)">
+                                    📍
+                                </button>
+                                <button class="btn btn-outline-info btn-sm"
+                                        title="ข้อมูลทหาร"
+                                        t-on-click.stop="() => this.openSoldierForm(s.id)">
+                                    ℹ️
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+
+                <div class="px-2 py-1 text-muted small border-bottom"
+                     t-if="offlineSoldiers.length > 0">
+                    ออฟไลน์ (<t t-esc="offlineSoldiers.length"/>)
+                </div>
+                <t t-foreach="offlineSoldiers" t-as="s" t-key="s.id">
+                    <div class="patrol-soldier-item p-2 border-bottom opacity-50"
+                         t-on-click="() => this.selectSoldier(s)">
+                        <div class="d-flex align-items-center">
+                            <span class="patrol-dot offline me-2"></span>
+                            <div>
+                                <strong><t t-esc="s.callsign"/></strong>
+                                <div class="text-muted small"><t t-esc="s.name"/></div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </div>
+
+            <!-- Active Incidents -->
+            <div class="patrol-incidents border-top" t-if="activeIncidents.length > 0">
+                <div class="px-2 py-1 text-danger small fw-bold border-bottom">
+                    ⚠️ เหตุการณ์ (<t t-esc="activeIncidents.length"/>)
+                </div>
+                <t t-foreach="activeIncidents" t-as="inc" t-key="inc.id">
+                    <div class="patrol-incident-item p-2 border-bottom"
+                         t-on-click="() => this.openIncidentForm(inc.id)">
+                        <div class="d-flex align-items-center">
+                            <span t-att-class="{
+                                'badge me-2': true,
+                                'text-bg-danger': inc.severity === 'critical',
+                                'text-bg-warning': inc.severity === 'high',
+                                'text-bg-info': inc.severity === 'medium',
+                                'text-bg-secondary': inc.severity === 'low',
+                            }">
+                                <t t-esc="inc.severity"/>
+                            </span>
+                            <div class="small">
+                                <div><t t-esc="inc.name"/></div>
+                                <div class="text-muted"><t t-esc="inc.incident_type"/></div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </div>
+
+        </div>
+
+        <!-- Map Area -->
+        <div class="patrol-map-container flex-grow-1 position-relative">
+            <div id="patrol-map" class="w-100 h-100"></div>
+
+            <!-- Map Controls -->
+            <div class="patrol-map-controls position-absolute top-0 end-0 m-2" style="z-index:1000;">
+                <button class="btn btn-sm btn-dark me-1"
+                        t-on-click="() => this.clearTrack()"
+                        title="ลบเส้นทาง">
+                    ✕ ลบเส้นทาง
+                </button>
+                <button class="btn btn-sm btn-dark"
+                        t-on-click="() => this.loadData()"
+                        title="รีเฟรช">
+                    🔄 รีเฟรช
+                </button>
+            </div>
+        </div>
+
+    </div>
+</t>
+
+</templates>

@@ -16,11 +16,12 @@
     """,
     "author": "NAVI-CC",
     "license": "LGPL-3",
-    "depends": ["base", "mail"],
+    "depends": ["base", "mail", "web"],
     "data": [
         "security/ir.model.access.csv",
         "data/patrol_data.xml",
         "views/menu_views.xml",
+        "views/command_center_views.xml",
         "views/patrol_unit_views.xml",
         "views/patrol_soldier_views.xml",
         "views/patrol_equipment_views.xml",
@@ -28,6 +29,13 @@
         "views/patrol_incident_views.xml",
         "views/patrol_gps_log_views.xml",
     ],
+    "assets": {
+        "web.assets_backend": [
+            "patrol_command/static/src/css/command_center.css",
+            "patrol_command/static/src/js/command_center_action.js",
+            "patrol_command/static/src/xml/command_center_templates.xml",
+        ],
+    },
     "installable": True,
     "application": True,
 }

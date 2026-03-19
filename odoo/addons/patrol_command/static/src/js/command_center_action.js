@@ -4,13 +4,13 @@ import { Component, useState, onMounted, onWillUnmount } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { loadJS, loadCSS } from "@web/core/assets";
+import { rpc } from "@web/core/network/rpc";
 import { WhepPlayer } from "./whep_player";
 
 class CommandCenterDashboard extends Component {
     static template = "patrol_command.CommandCenterDashboard";
 
     setup() {
-        this.rpc = useService("rpc");
         this.action = useService("action");
 
         this.state = useState({
@@ -72,11 +72,11 @@ class CommandCenterDashboard extends Component {
     async loadData() {
         const missionId = this.state.selectedMissionId;
         const [soldiers, equipment, missions, incidents, stats] = await Promise.all([
-            this.rpc("/patrol/api/soldiers", { mission_id: missionId }),
-            this.rpc("/patrol/api/equipment", { mission_id: missionId }),
-            this.rpc("/patrol/api/missions", { state: "active" }),
-            this.rpc("/patrol/api/incidents", { mission_id: missionId }),
-            this.rpc("/patrol/api/stats", { mission_id: missionId }),
+            rpc("/patrol/api/soldiers", { mission_id: missionId }),
+            rpc("/patrol/api/equipment", { mission_id: missionId }),
+            rpc("/patrol/api/missions", { state: "active" }),
+            rpc("/patrol/api/incidents", { mission_id: missionId }),
+            rpc("/patrol/api/stats", { mission_id: missionId }),
         ]);
 
         this.state.soldiers = soldiers;
@@ -203,7 +203,7 @@ class CommandCenterDashboard extends Component {
             this.trackLine = null;
         }
 
-        const logs = await this.rpc("/patrol/api/gps_track", {
+        const logs = await rpc("/patrol/api/gps_track", {
             soldier_id: soldierId,
             limit: 1000,
         });

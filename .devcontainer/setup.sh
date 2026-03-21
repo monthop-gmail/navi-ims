@@ -4,16 +4,17 @@
 echo "🚀 NAVI-IMS — Setting up Codespace..."
 
 # ─── Find workspace root (where docker-compose.yml lives) ───
-if [ -f "/workspace/docker-compose.yml" ]; then
+if [ -f "/workspaces/navi-ims/docker-compose.yml" ]; then
+    WS="/workspaces/navi-ims"
+elif [ -f "/workspace/docker-compose.yml" ]; then
     WS="/workspace"
 elif [ -f "/workspace/navi-ims/docker-compose.yml" ]; then
     WS="/workspace/navi-ims"
 elif [ -n "$WORKSPACE_FOLDER" ] && [ -f "$WORKSPACE_FOLDER/docker-compose.yml" ]; then
     WS="$WORKSPACE_FOLDER"
 else
-    # Fallback: find it
-    WS=$(find /workspace -maxdepth 2 -name "docker-compose.yml" -printf '%h' -quit 2>/dev/null)
-    WS="${WS:-/workspace}"
+    WS=$(find /workspaces /workspace -maxdepth 2 -name "docker-compose.yml" -printf '%h' -quit 2>/dev/null)
+    WS="${WS:-/workspaces/navi-ims}"
 fi
 echo "📂 Workspace: $WS"
 

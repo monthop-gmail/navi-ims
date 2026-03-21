@@ -3,7 +3,7 @@ services:
   devcontainer:
     image: mcr.microsoft.com/devcontainers/base:ubuntu
     volumes:
-      - ..:/workspace:cached
+      - ..:/workspaces/navi-ims:cached
       - /var/run/docker.sock:/var/run/docker.sock
     command: /bin/sh -c "while sleep 1000; do :; done"
     depends_on:

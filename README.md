@@ -176,22 +176,42 @@ docker compose restart odoo
 📱 ทหาร (มือถือ)
   ├── Video (WHIP) ──→ MediaMTX ──→ WHEP subscribe ──→ Odoo Dashboard
   ├── GPS (Socket.IO) ──→ Node.js ──→ Odoo (patrol.gps.log)
-  └── SOS ──→ Node.js ──→ Odoo (patrol.incident) ──→ Inngest workflow
+  ├── SOS ──→ Node.js ──→ Odoo (patrol.incident) ──→ Inngest workflow
+  └── GPS ──→ Geofence check ──→ ละเมิดเขต? ──→ Odoo incident
 
-📷 กล้อง Fixed (Dahua NVR)
-  ├── RTSP ──→ MediaMTX ──→ Node.js ดึง frame
-  ├── frame ──→ Celery AI ──→ anomaly? ──→ Odoo incident ──→ Inngest
-  ├── AI ตรวจจับคน/รถ ──→ Geolocation (pixel→พิกัด) ──→ Sighting
-  └── คน/รถ ที่ประตู ──→ Access Control ──→ เปิด/บล็อก/รออนุมัติ
+📷 กล้อง Fixed — ประตู/ในพื้นที่
+  ├── RTSP ──→ MediaMTX ──→ Node.js ดึง frame ──→ Celery AI
+  ├── AI ตรวจจับ anomaly ──→ Odoo incident ──→ Inngest workflow
+  ├── AI ตรวจจับคน/รถ ──→ Geolocation (pixel→พิกัด) ──→ Sighting + World Track
+  ├── Match ทะเบียนคน/รถ ──→ รู้จัก / ไม่รู้จัก / Watchlist
+  └── ที่ประตู ──→ Access Control ──→ เปิดอัตโนมัติ / บล็อก / รออนุมัติ
+
+📷 กล้อง Fixed — ปากร่องน้ำ/ท่าเรือ
+  ├── AI ตรวจจับเรือ ──→ Match ทะเบียนเรือ
+  ├── รู้จัก ──→ Sighting (บันทึก) + World Track
+  ├── ไม่รู้จัก ──→ Sighting + เช็คกฎแจ้งเตือน ──→ สร้าง incident?
+  └── Watchlist ──→ 🚨 Sighting + incident + แจ้ง LINE/Slack ทันที
 
 🚁 Drone
   ├── Video (RTMP) ──→ MediaMTX ──→ Node.js ดึง frame ──→ Celery AI
+  ├── AI ตรวจจับ ──→ Geolocation + Sighting + World Track
   └── GPS (tracker) ──→ Odoo GPS Server (HTTP/OsmAnd/Traccar)
 
 ⚙️ Inngest Workflow (shared — ทุก module ใช้ร่วมกัน)
-  incident.created ──→ หา commander ──→ แจ้งเตือน ──→ รอรับงาน
-    ──→ timeout? escalate ──→ รอแก้ไข ──→ ปิด
-  mission.activated ──→ แจ้งทุกทีม ──→ เริ่ม equipment ──→ monitor ──→ สรุปผล
+  incident.created ──→ หา commander (ตามสายบัญชาการ)
+    ──→ แจ้งเตือน (LINE/Slack/Discord/Odoo)
+    ──→ รอรับงาน (15-30 นาที)
+    ──→ timeout? ──→ escalate ไปหน่วยเหนือ
+    ──→ รอแก้ไข ──→ ปิด incident
+
+  mission.activated ──→ แจ้งทุกทีม (LINE/Slack)
+    ──→ เริ่ม stream กล้อง/อุปกรณ์ทั้งหมด
+    ──→ monitor ──→ เสร็จ ──→ หยุด stream + สรุปผล
+
+📊 Executive Dashboard
+  ──→ รวม KPI จากทุก module อัตโนมัติ
+  ──→ กำลังพลพร้อม%, อุปกรณ์พร้อม%, เหตุการณ์, เวลาตอบสนอง
+  ──→ Trend chart + แยกตามประเภท/ความรุนแรง
 ```
 
 ## Command Center — Marker สีบนแผนที่

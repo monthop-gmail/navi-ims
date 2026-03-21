@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══ Person Registry ═══ -->
+    <record id="access_person_view_tree" model="ir.ui.view">
+        <field name="name">patrol.access.person.tree</field>
+        <field name="model">patrol.access.person</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="person_type" widget="badge"
+                       decoration-success="person_type in ('soldier','staff','vip')"
+                       decoration-info="person_type in ('visitor','contractor')"
+                       decoration-danger="person_type == 'blocked'"/>
+                <field name="id_number"/>
+                <field name="organization"/>
+                <field name="access_level"/>
+                <field name="valid_until"/>
+                <field name="is_active_access"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="access_person_view_form" model="ir.ui.view">
+        <field name="name">patrol.access.person.form</field>
+        <field name="model">patrol.access.person</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <field name="photo" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="person_type"/>
+                            <field name="id_number"/>
+                            <field name="phone"/>
+                            <field name="organization"/>
+                            <field name="soldier_id"/>
+                        </group>
+                        <group>
+                            <field name="access_level"/>
+                            <field name="allowed_gate_ids" widget="many2many_tags"/>
+                            <field name="valid_from"/>
+                            <field name="valid_until"/>
+                            <field name="is_active_access"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="รูปถ่ายเพิ่มเติม">
+                            <field name="photo_2" widget="image"/>
+                        </page>
+                        <page string="หมายเหตุ">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="access_person_action" model="ir.actions.act_window">
+        <field name="name">ทะเบียนบุคคล</field>
+        <field name="res_model">patrol.access.person</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ═══ Vehicle Registry ═══ -->
+    <record id="access_vehicle_view_tree" model="ir.ui.view">
+        <field name="name">patrol.access.vehicle.tree</field>
+        <field name="model">patrol.access.vehicle</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="plate_number"/>
+                <field name="vehicle_type" widget="badge"
+                       decoration-success="vehicle_type in ('military','official')"
+                       decoration-info="vehicle_type in ('staff','visitor','delivery')"
+                       decoration-danger="vehicle_type == 'blocked'"/>
+                <field name="brand"/>
+                <field name="color"/>
+                <field name="owner_id"/>
+                <field name="access_level"/>
+                <field name="valid_until"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="access_vehicle_action" model="ir.actions.act_window">
+        <field name="name">ทะเบียนยานพาหนะ</field>
+        <field name="res_model">patrol.access.vehicle</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ═══ Gate ═══ -->
+    <record id="access_gate_view_tree" model="ir.ui.view">
+        <field name="name">patrol.access.gate.tree</field>
+        <field name="model">patrol.access.gate</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="gate_type"/>
+                <field name="camera_id"/>
+                <field name="auto_open_known"/>
+                <field name="require_approval_unknown"/>
+                <field name="is_open" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="access_gate_view_form" model="ir.ui.view">
+        <field name="name">patrol.access.gate.form</field>
+        <field name="model">patrol.access.gate</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_open" string="เปิดประตู" type="object" class="btn-success"
+                            invisible="is_open == True"/>
+                    <button name="action_close" string="ปิดประตู" type="object" class="btn-danger"
+                            invisible="is_open == False"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="ข้อมูล">
+                            <field name="gate_type"/>
+                            <field name="location"/>
+                            <field name="camera_id"/>
+                            <field name="gps_lat"/>
+                            <field name="gps_lng"/>
+                        </group>
+                        <group string="การควบคุม">
+                            <field name="control_url"/>
+                            <field name="control_method"/>
+                            <field name="auto_close_seconds"/>
+                            <field name="is_open"/>
+                        </group>
+                    </group>
+                    <group string="นโยบาย">
+                        <field name="auto_open_known"/>
+                        <field name="require_approval_unknown"/>
+                        <field name="block_blacklist"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="access_gate_action" model="ir.actions.act_window">
+        <field name="name">ประตู / จุดเข้า-ออก</field>
+        <field name="res_model">patrol.access.gate</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ═══ Access Request (Kanban) ═══ -->
+    <record id="access_request_view_tree" model="ir.ui.view">
+        <field name="name">patrol.access.request.tree</field>
+        <field name="model">patrol.access.request</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="state == 'denied'" decoration-warning="state == 'pending'">
+                <field name="request_time"/>
+                <field name="gate_id"/>
+                <field name="request_type"/>
+                <field name="detected_plate"/>
+                <field name="match_confidence"/>
+                <field name="state" widget="badge"/>
+                <field name="approved_by"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="access_request_view_form" model="ir.ui.view">
+        <field name="name">patrol.access.request.form</field>
+        <field name="model">patrol.access.request</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_approve" string="อนุมัติ + เปิดประตู" type="object"
+                            class="btn-success" invisible="state != 'pending'"/>
+                    <button name="action_deny" string="ปฏิเสธ" type="object"
+                            class="btn-danger" invisible="state != 'pending'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="gate_id"/>
+                            <field name="request_type"/>
+                            <field name="request_time"/>
+                            <field name="detected_plate"/>
+                            <field name="match_confidence" widget="progressbar"/>
+                        </group>
+                        <group>
+                            <field name="matched_person_id"/>
+                            <field name="matched_vehicle_id"/>
+                            <field name="register_as_known"/>
+                            <field name="approved_by"/>
+                            <field name="response_time"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="snapshot_image" widget="image"/>
+                    </group>
+                    <field name="note" placeholder="หมายเหตุ..."/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="access_request_view_kanban" model="ir.ui.view">
+        <field name="name">patrol.access.request.kanban</field>
+        <field name="model">patrol.access.request</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state">
+                <field name="name"/>
+                <field name="gate_id"/>
+                <field name="request_type"/>
+                <field name="detected_plate"/>
+                <field name="state"/>
+                <field name="snapshot_image"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex">
+                            <field name="snapshot_image" widget="image" class="o_kanban_image"/>
+                            <div class="ms-2">
+                                <strong><field name="name"/></strong>
+                                <div><field name="gate_id"/></div>
+                                <div class="text-muted" t-if="record.detected_plate.value">
+                                    ทะเบียน: <field name="detected_plate"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="access_request_action" model="ir.actions.act_window">
+        <field name="name">คำขอเข้า-ออก</field>
+        <field name="res_model">patrol.access.request</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'search_default_pending': 1}</field>
+    </record>
+
+    <!-- ═══ Access Log ═══ -->
+    <record id="access_log_view_tree" model="ir.ui.view">
+        <field name="name">patrol.access.log.tree</field>
+        <field name="model">patrol.access.log</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="timestamp"/>
+                <field name="gate_id"/>
+                <field name="direction" widget="badge"/>
+                <field name="access_type"/>
+                <field name="result" widget="badge"
+                       decoration-success="result in ('auto_granted','manual_granted')"
+                       decoration-danger="result in ('denied','blocked')"/>
+                <field name="person_id"/>
+                <field name="vehicle_id"/>
+                <field name="detected_plate"/>
+                <field name="match_confidence"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="access_log_action" model="ir.actions.act_window">
+        <field name="name">บันทึกเข้า-ออก</field>
+        <field name="res_model">patrol.access.log</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <!-- ═══ Menus ═══ -->
+    <menuitem id="menu_access"
+              name="เข้า-ออก"
+              parent="patrol_command.menu_patrol_root"
+              sequence="50"/>
+
+    <menuitem id="menu_access_request" name="คำขอเข้า-ออก"
+              parent="menu_access" action="access_request_action" sequence="5"/>
+    <menuitem id="menu_access_log" name="บันทึกเข้า-ออก"
+              parent="menu_access" action="access_log_action" sequence="10"/>
+    <menuitem id="menu_access_person" name="ทะเบียนบุคคล"
+              parent="menu_access" action="access_person_action" sequence="20"/>
+    <menuitem id="menu_access_vehicle" name="ทะเบียนยานพาหนะ"
+              parent="menu_access" action="access_vehicle_action" sequence="30"/>
+    <menuitem id="menu_access_gate" name="ประตู / จุดเข้า-ออก"
+              parent="menu_access" action="access_gate_action" sequence="40"/>
+
+</odoo>

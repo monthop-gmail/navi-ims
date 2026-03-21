@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_person,patrol.access.person.user,model_patrol_access_person,patrol_command.group_soldier,1,0,0,0
+access_person_leader,patrol.access.person.leader,model_patrol_access_person,patrol_command.group_squad_leader,1,1,1,1
+access_vehicle,patrol.access.vehicle.user,model_patrol_access_vehicle,patrol_command.group_soldier,1,0,0,0
+access_vehicle_leader,patrol.access.vehicle.leader,model_patrol_access_vehicle,patrol_command.group_squad_leader,1,1,1,1
+access_gate,patrol.access.gate.user,model_patrol_access_gate,patrol_command.group_soldier,1,0,0,0
+access_gate_leader,patrol.access.gate.leader,model_patrol_access_gate,patrol_command.group_platoon_leader,1,1,1,1
+access_request,patrol.access.request.user,model_patrol_access_request,patrol_command.group_soldier,1,0,0,0
+access_request_leader,patrol.access.request.leader,model_patrol_access_request,patrol_command.group_squad_leader,1,1,1,0
+access_log,patrol.access.log.user,model_patrol_access_log,patrol_command.group_soldier,1,0,0,0
+access_log_leader,patrol.access.log.leader,model_patrol_access_log,patrol_command.group_squad_leader,1,1,1,0

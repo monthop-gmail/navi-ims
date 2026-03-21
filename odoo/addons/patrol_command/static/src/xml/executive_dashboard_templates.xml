@@ -99,7 +99,7 @@
                 <div class="col-md-3">
                     <div class="exec-card p-3">
                         <div class="exec-card-label">เวลาตอบสนองเฉลี่ย</div>
-                        <div class="exec-card-value" t-att-style="'color:' + (state.kpi.incidents.avg_response_min <= 30 ? '#00ff88' : '#f85149')">
+                        <div class="exec-card-value" t-att-style="'color:' + (state.kpi.incidents.avg_response_min &lt;= 30 ? '#00ff88' : '#f85149')">
                             <t t-esc="state.kpi.incidents.avg_response_min"/>
                             <span style="font-size:0.4em;"> นาที</span>
                         </div>

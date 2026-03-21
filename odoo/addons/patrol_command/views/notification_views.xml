@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══ Notification Channel ═══ -->
+    <record id="notification_channel_view_tree" model="ir.ui.view">
+        <field name="name">patrol.notification.channel.tree</field>
+        <field name="model">patrol.notification.channel</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="channel_type" widget="badge"/>
+                <field name="min_severity"/>
+                <field name="notify_sos"/>
+                <field name="notify_incident"/>
+                <field name="notify_mission"/>
+                <field name="is_active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="notification_channel_view_form" model="ir.ui.view">
+        <field name="name">patrol.notification.channel.form</field>
+        <field name="model">patrol.notification.channel</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="channel_type"/>
+                            <field name="token" password="True"/>
+                            <field name="is_active"/>
+                        </group>
+                        <group string="ส่งเมื่อ">
+                            <field name="min_severity"/>
+                            <field name="notify_sos"/>
+                            <field name="notify_incident"/>
+                            <field name="notify_mission"/>
+                            <field name="notify_geofence"/>
+                            <field name="notify_access"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="notification_channel_action" model="ir.actions.act_window">
+        <field name="name">ช่องทางแจ้งเตือน</field>
+        <field name="res_model">patrol.notification.channel</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ═══ Notification Log ═══ -->
+    <record id="notification_log_view_tree" model="ir.ui.view">
+        <field name="name">patrol.notification.log.tree</field>
+        <field name="model">patrol.notification.log</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="success == False" decoration-success="success == True">
+                <field name="sent_at"/>
+                <field name="channel_id"/>
+                <field name="channel_type"/>
+                <field name="message" optional="hide"/>
+                <field name="incident_id"/>
+                <field name="mission_id"/>
+                <field name="success"/>
+                <field name="error" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="notification_log_action" model="ir.actions.act_window">
+        <field name="name">ประวัติแจ้งเตือน</field>
+        <field name="res_model">patrol.notification.log</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <!-- ═══ Menus ═══ -->
+    <menuitem id="menu_notification_channel" name="ช่องทางแจ้งเตือน"
+              parent="menu_patrol_config" action="notification_channel_action" sequence="20"/>
+    <menuitem id="menu_notification_log" name="ประวัติแจ้งเตือน"
+              parent="menu_patrol_config" action="notification_log_action" sequence="30"/>
+
+</odoo>

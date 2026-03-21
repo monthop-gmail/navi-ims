@@ -26,3 +26,7 @@ access_patrol_maint_part_commander,patrol.maintenance.part.commander,model_patro
 access_patrol_maint_schedule_leader,patrol.maintenance.schedule.leader,model_patrol_maintenance_schedule,group_platoon_leader,1,1,1,0
 access_patrol_maint_schedule_commander,patrol.maintenance.schedule.commander,model_patrol_maintenance_schedule,group_company_commander,1,1,1,1
 access_inngest_mixin,inngest.mixin.all,model_inngest_mixin,base.group_system,1,0,0,0
+access_notif_channel_soldier,patrol.notification.channel.soldier,model_patrol_notification_channel,group_soldier,1,0,0,0
+access_notif_channel_commander,patrol.notification.channel.commander,model_patrol_notification_channel,group_company_commander,1,1,1,1
+access_notif_log_soldier,patrol.notification.log.soldier,model_patrol_notification_log,group_soldier,1,0,0,0
+access_notif_log_leader,patrol.notification.log.leader,model_patrol_notification_log,group_squad_leader,1,1,1,0

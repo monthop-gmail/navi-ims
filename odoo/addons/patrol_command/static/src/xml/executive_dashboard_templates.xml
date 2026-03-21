@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+
+<t t-name="patrol_command.ExecutiveDashboard">
+    <div class="exec-dashboard p-4" style="background:#0d1117; color:#e6edf3; min-height:calc(100vh - 46px); overflow-y:auto;">
+
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 style="color:#00ff88; margin:0;">NAVI-IMS</h2>
+                <div class="text-muted">Executive Dashboard</div>
+            </div>
+            <div>
+                <button class="btn btn-outline-success btn-sm me-2" t-on-click="() => this.openCommandCenter()">
+                    Open Command Center
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" t-on-click="() => this.loadData()">
+                    Refresh
+                </button>
+            </div>
+        </div>
+
+        <div t-if="state.loading" class="text-center py-5">
+            <div class="spinner-border text-success"></div>
+            <div class="mt-2">Loading...</div>
+        </div>
+
+        <div t-if="!state.loading and state.kpi">
+
+            <!-- KPI Cards Row 1 -->
+            <div class="row g-3 mb-4">
+                <!-- กำลังพล -->
+                <div class="col-md-3">
+                    <div class="exec-card p-3">
+                        <div class="exec-card-label">กำลังพลพร้อม</div>
+                        <div class="exec-card-value text-success">
+                            <t t-esc="state.kpi.personnel.readiness_pct"/>%
+                        </div>
+                        <div class="exec-card-detail">
+                            Online: <t t-esc="state.kpi.personnel.online"/> /
+                            <t t-esc="state.kpi.personnel.total"/> นาย
+                        </div>
+                    </div>
+                </div>
+
+                <!-- อุปกรณ์ -->
+                <div class="col-md-3">
+                    <div class="exec-card p-3">
+                        <div class="exec-card-label">อุปกรณ์พร้อม</div>
+                        <div class="exec-card-value" t-att-style="'color:' + (state.kpi.equipment.readiness_pct >= 80 ? '#00ff88' : '#f85149')">
+                            <t t-esc="state.kpi.equipment.readiness_pct"/>%
+                        </div>
+                        <div class="exec-card-detail">
+                            พร้อม: <t t-esc="state.kpi.equipment.ready + state.kpi.equipment.active"/> /
+                            <t t-esc="state.kpi.equipment.total"/> ชิ้น
+                            <span t-if="state.kpi.equipment.maintenance > 0" class="text-warning ms-1">
+                                (ซ่อม: <t t-esc="state.kpi.equipment.maintenance"/>)
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ภารกิจ -->
+                <div class="col-md-3">
+                    <div class="exec-card p-3">
+                        <div class="exec-card-label">ภารกิจเดือนนี้</div>
+                        <div class="exec-card-value text-info">
+                            <t t-esc="state.kpi.missions.active"/>
+                            <span style="font-size:0.5em; color:#8b949e;"> active</span>
+                        </div>
+                        <div class="exec-card-detail">
+                            สำเร็จ: <t t-esc="state.kpi.missions.completed_month"/> /
+                            <t t-esc="state.kpi.missions.total_month"/>
+                            (<t t-esc="state.kpi.missions.success_rate"/>%)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- เหตุการณ์ -->
+                <div class="col-md-3">
+                    <div class="exec-card p-3">
+                        <div class="exec-card-label">เหตุการณ์ที่ยังเปิด</div>
+                        <div class="exec-card-value" t-att-style="'color:' + (state.kpi.incidents.active > 0 ? '#f85149' : '#00ff88')">
+                            <t t-esc="state.kpi.incidents.active"/>
+                        </div>
+                        <div class="exec-card-detail">
+                            <span t-if="state.kpi.incidents.sos_active > 0" class="text-danger fw-bold me-2">
+                                SOS: <t t-esc="state.kpi.incidents.sos_active"/>
+                            </span>
+                            วันนี้: <t t-esc="state.kpi.incidents.today"/> |
+                            สัปดาห์: <t t-esc="state.kpi.incidents.week"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Cards Row 2 -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="exec-card p-3">
+                        <div class="exec-card-label">เวลาตอบสนองเฉลี่ย</div>
+                        <div class="exec-card-value" t-att-style="'color:' + (state.kpi.incidents.avg_response_min <= 30 ? '#00ff88' : '#f85149')">
+                            <t t-esc="state.kpi.incidents.avg_response_min"/>
+                            <span style="font-size:0.4em;"> นาที</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="exec-card p-3">
+                        <div class="exec-card-label">เหตุการณ์เดือนนี้</div>
+                        <div class="exec-card-value text-warning">
+                            <t t-esc="state.kpi.incidents.month"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="exec-card p-3">
+                        <div class="exec-card-label">รอซ่อมบำรุง</div>
+                        <div class="exec-card-value" t-att-style="'color:' + (state.kpi.maintenance.pending > 0 ? '#f0883e' : '#00ff88')">
+                            <t t-esc="state.kpi.maintenance.pending"/>
+                            <span style="font-size:0.4em;"> รายการ</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="exec-card p-3">
+                        <div class="exec-card-label">ค่าซ่อมบำรุง/เดือน</div>
+                        <div class="exec-card-value text-info">
+                            <t t-esc="state.kpi.maintenance.cost_month.toLocaleString()"/>
+                            <span style="font-size:0.4em;"> บาท</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="row g-3 mb-4">
+                <!-- Trend Chart -->
+                <div class="col-md-8">
+                    <div class="exec-card p-3">
+                        <div class="exec-card-label mb-2">เหตุการณ์ 14 วันล่าสุด</div>
+                        <div class="d-flex align-items-end" style="height:120px; gap:3px;">
+                            <t t-foreach="state.trends" t-as="t" t-key="t.date">
+                                <div class="d-flex flex-column align-items-center flex-grow-1">
+                                    <div style="font-size:0.6rem; color:#8b949e;" t-esc="t.incidents"/>
+                                    <div style="width:100%; border-radius:2px 2px 0 0; min-height:2px;"
+                                         t-att-style="'height:' + (t.incidents / trendMax * 100) + 'px; background:' + (t.incidents > 0 ? '#f0883e' : '#21262d') + ';'"></div>
+                                    <div style="font-size:0.55rem; color:#484f58; margin-top:2px;" t-esc="t.label"/>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- By Type -->
+                <div class="col-md-4">
+                    <div class="exec-card p-3">
+                        <div class="exec-card-label mb-2">เหตุการณ์ตามประเภท (30 วัน)</div>
+                        <t t-foreach="state.byType" t-as="item" t-key="item.type">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span style="font-size:0.85rem;" t-esc="item.label"/>
+                                <span class="badge text-bg-secondary" t-esc="item.count"/>
+                            </div>
+                        </t>
+                        <hr style="border-color:#30363d;"/>
+                        <div class="exec-card-label mb-2">เหตุการณ์ตามความรุนแรง</div>
+                        <t t-foreach="state.bySeverity" t-as="item" t-key="item.severity">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span style="font-size:0.85rem;" t-esc="item.label"/>
+                                <span t-att-class="'badge ' + {'critical':'text-bg-danger','high':'text-bg-warning','medium':'text-bg-info','low':'text-bg-secondary'}[item.severity]"
+                                      t-esc="item.count"/>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</t>
+
+</templates>

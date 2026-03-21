@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_executive_dashboard" model="ir.actions.client">
+        <field name="name">Executive Dashboard</field>
+        <field name="tag">patrol_executive_dashboard</field>
+    </record>
+
+    <menuitem id="menu_executive_dashboard"
+              name="Executive Dashboard"
+              parent="menu_patrol_root"
+              action="action_executive_dashboard"
+              sequence="1"/>
+</odoo>

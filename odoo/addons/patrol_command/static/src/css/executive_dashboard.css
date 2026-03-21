@@ -1,0 +1,36 @@
+/* Executive Dashboard */
+
+.exec-dashboard {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.exec-card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    transition: border-color 0.2s;
+}
+
+.exec-card:hover {
+    border-color: #00ff88;
+}
+
+.exec-card-label {
+    font-size: 0.8rem;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.exec-card-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    line-height: 1.2;
+}
+
+.exec-card-detail {
+    font-size: 0.8rem;
+    color: #8b949e;
+    margin-top: 4px;
+}

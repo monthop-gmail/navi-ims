@@ -64,14 +64,26 @@ async def odoo_patrol_api(endpoint: str, params: dict):
 
 async def send_notification(channel: str, message: str, **extra):
     """
-    ส่งแจ้งเตือน — placeholder สำหรับ LINE/Slack/SMS
-    channel: "line" / "slack" / "sms" / "all"
+    ส่งแจ้งเตือนผ่าน Odoo Notification API → กระจายไปทุก channel (LINE/Slack/Discord/Odoo)
     """
-    print(f"[NOTIFY:{channel}] {message} | extra={extra}")
-    # TODO: implement real notification
-    #   LINE Notify: httpx.post("https://notify-api.line.me/api/notify", ...)
-    #   Slack: httpx.post(SLACK_WEBHOOK_URL, ...)
-    return {"sent": True, "channel": channel}
+    print(f"[NOTIFY:{channel}] {message}")
+
+    severity = extra.get("severity", "medium")
+    incident_id = extra.get("incident_id")
+    mission_id = extra.get("mission_id")
+    event_type = extra.get("event_type", "incident")
+
+    # เรียก Odoo API ให้ส่งจริง
+    result = await odoo_patrol_api("/patrol/api/external/notify", {
+        "message": message,
+        "severity": severity,
+        "title": extra.get("title", "NAVI-IMS"),
+        "incident_id": incident_id,
+        "mission_id": mission_id,
+        "event_type": event_type,
+    })
+
+    return result or {"sent": True, "channel": channel}
 
 
 # ─── Helper: หา commander ตาม chain of command ───

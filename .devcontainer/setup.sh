@@ -2,11 +2,17 @@
 # ═══ First-time setup (postCreateCommand) ═══
 set -e
 
-echo "🚀 NAVI-CC — Setting up Codespace..."
+echo "🚀 NAVI-IMS — Setting up Codespace..."
+
+# Install docker CLI (needed for docker compose commands in start.sh)
+if ! command -v docker &> /dev/null; then
+    echo "📦 Installing Docker CLI..."
+    curl -fsSL https://get.docker.com | sh 2>/dev/null || true
+fi
 
 # Copy .env if not exists
 if [ ! -f /workspace/.env ]; then
-    cat > /workspace/.env << 'EOF'
+    cp /workspace/.env.example /workspace/.env 2>/dev/null || cat > /workspace/.env << 'EOF'
 POSTGRES_USER=odoo
 POSTGRES_PASSWORD=odoo_secret_2026
 POSTGRES_DB=odoo

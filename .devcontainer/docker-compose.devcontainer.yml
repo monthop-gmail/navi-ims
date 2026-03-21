@@ -4,12 +4,14 @@ services:
     image: mcr.microsoft.com/devcontainers/base:ubuntu
     volumes:
       - ..:/workspace:cached
+      - /var/run/docker.sock:/var/run/docker.sock
     command: /bin/sh -c "while sleep 1000; do :; done"
     depends_on:
       - odoo
       - redis
       - node-service
       - inngest-worker
+      - mediamtx
 
   # Override: ลด celery replicas ใน codespace (ประหยัด resource)
   celery-worker:

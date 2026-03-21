@@ -1,5 +1,5 @@
 {
-  "name": "NAVI-CC",
+  "name": "NAVI-IMS",
   "dockerComposeFile": ["../docker-compose.yml", "docker-compose.devcontainer.yml"],
   "service": "devcontainer",
   "workspaceFolder": "/workspace",

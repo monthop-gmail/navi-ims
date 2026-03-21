@@ -3,6 +3,20 @@
 
 echo "🚀 NAVI-IMS — Setting up Codespace..."
 
+# ─── Find workspace root (where docker-compose.yml lives) ───
+if [ -f "/workspace/docker-compose.yml" ]; then
+    WS="/workspace"
+elif [ -f "/workspace/navi-ims/docker-compose.yml" ]; then
+    WS="/workspace/navi-ims"
+elif [ -n "$WORKSPACE_FOLDER" ] && [ -f "$WORKSPACE_FOLDER/docker-compose.yml" ]; then
+    WS="$WORKSPACE_FOLDER"
+else
+    # Fallback: find it
+    WS=$(find /workspace -maxdepth 2 -name "docker-compose.yml" -printf '%h' -quit 2>/dev/null)
+    WS="${WS:-/workspace}"
+fi
+echo "📂 Workspace: $WS"
+
 # Install docker CLI if not available
 if ! command -v docker &> /dev/null; then
     echo "📦 Installing Docker CLI..."
@@ -18,11 +32,11 @@ else
 fi
 
 # Copy .env if not exists
-if [ ! -f /workspace/.env ]; then
-    if [ -f /workspace/.env.example ]; then
-        cp /workspace/.env.example /workspace/.env
+if [ ! -f "$WS/.env" ]; then
+    if [ -f "$WS/.env.example" ]; then
+        cp "$WS/.env.example" "$WS/.env"
     else
-        cat > /workspace/.env << 'ENVEOF'
+        cat > "$WS/.env" << 'ENVEOF'
 POSTGRES_USER=odoo
 POSTGRES_PASSWORD=odoo_secret_2026
 POSTGRES_DB=odoo
@@ -33,7 +47,7 @@ REDIS_URL=redis://redis:6379/0
 ODOO_URL=http://odoo:8069
 ENVEOF
     fi
-    echo "✅ .env created"
+    echo "✅ .env created at $WS/.env"
 fi
 
 echo "✅ Setup complete — start.sh will run next"

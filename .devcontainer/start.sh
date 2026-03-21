@@ -3,9 +3,19 @@
 
 echo "🔄 NAVI-IMS — Starting services..."
 
-# Find workspace
-WORKSPACE="${WORKSPACE_FOLDER:-/workspace}"
-cd "$WORKSPACE" 2>/dev/null || cd /workspace 2>/dev/null || true
+# ─── Find workspace root (where docker-compose.yml lives) ───
+if [ -f "/workspace/docker-compose.yml" ]; then
+    WS="/workspace"
+elif [ -f "/workspace/navi-ims/docker-compose.yml" ]; then
+    WS="/workspace/navi-ims"
+elif [ -n "$WORKSPACE_FOLDER" ] && [ -f "$WORKSPACE_FOLDER/docker-compose.yml" ]; then
+    WS="$WORKSPACE_FOLDER"
+else
+    WS=$(find /workspace -maxdepth 2 -name "docker-compose.yml" -printf '%h' -quit 2>/dev/null)
+    WS="${WS:-/workspace}"
+fi
+echo "📂 Workspace: $WS"
+cd "$WS"
 
 # ─── Wait for PostgreSQL ───
 echo "⏳ Waiting for PostgreSQL..."
@@ -33,7 +43,7 @@ if [ -z "$DB_INIT" ]; then
     echo "📦 Initializing Odoo database + all modules (first time, ~2 min)..."
 
     # ใช้ docker compose run แทน docker exec (ปลอดภัยกว่า)
-    docker compose -f "$WORKSPACE/docker-compose.yml" run --rm odoo odoo \
+    docker compose -f "$WS/docker-compose.yml" run --rm odoo odoo \
         -i base,patrol_command,patrol_intelligence,patrol_personnel,patrol_inventory,patrol_geofence,patrol_access,patrol_geolocation \
         --stop-after-init -d odoo 2>&1 | tail -10
 

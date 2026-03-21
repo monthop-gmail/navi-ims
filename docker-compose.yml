@@ -70,6 +70,7 @@ services:
 
   odoo:
     image: odoo:19.0
+    entrypoint: ["/bin/bash", "/mnt/entrypoint.sh"]
     ports:
       - "8069:8069"
       - "8072:8072"
@@ -78,10 +79,12 @@ services:
       PORT: 5432
       USER: ${POSTGRES_USER}
       PASSWORD: ${POSTGRES_PASSWORD}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - odoo_data:/var/lib/odoo
       - ./odoo/addons:/mnt/extra-addons
       - ./odoo/odoo.conf:/etc/odoo/odoo.conf:ro
+      - ./odoo/entrypoint.sh:/mnt/entrypoint.sh:ro
     depends_on:
       postgres-odoo:
         condition: service_healthy

@@ -34,6 +34,11 @@
         <field name="comment">ดูทุกอย่าง, ตั้งค่าระบบ</field>
     </record>
 
+    <!-- Admin (Settings) ได้สิทธิ์ ผบ.กองร้อย อัตโนมัติ -->
+    <record id="base.group_system" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('group_company_commander'))]"/>
+    </record>
+
     <!-- ═══ Record Rules ═══ -->
 
     <!-- ทหาร: เห็นเฉพาะภารกิจที่ตัวเองอยู่ -->

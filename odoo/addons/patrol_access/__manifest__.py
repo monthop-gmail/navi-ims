@@ -5,7 +5,7 @@
     "summary": "ระบบเข้า-ออก — จดจำคน/รถ, เปิดประตูอัตโนมัติ, อนุมัติผู้ไม่รู้จัก",
     "author": "NAVI-IMS",
     "license": "LGPL-3",
-    "depends": ["patrol_command"],
+    "depends": ["patrol_command", "patrol_intelligence"],
     "data": [
         "security/ir.model.access.csv",
         "views/access_views.xml",

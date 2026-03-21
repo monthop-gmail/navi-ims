@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_calibration,patrol.camera.calibration.user,model_patrol_camera_calibration,patrol_command.group_soldier,1,0,0,0
+access_calibration_cmd,patrol.camera.calibration.cmd,model_patrol_camera_calibration,patrol_command.group_company_commander,1,1,1,1
+access_world_track,patrol.world.track.user,model_patrol_world_track,patrol_command.group_soldier,1,0,0,0
+access_world_track_leader,patrol.world.track.leader,model_patrol_world_track,patrol_command.group_squad_leader,1,1,1,0
+access_world_track_point,patrol.world.track.point.user,model_patrol_world_track_point,patrol_command.group_soldier,1,0,0,0
+access_world_track_point_leader,patrol.world.track.point.leader,model_patrol_world_track_point,patrol_command.group_squad_leader,1,1,1,0

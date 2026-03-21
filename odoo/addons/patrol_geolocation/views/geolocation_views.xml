@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══ Camera Calibration ═══ -->
+    <record id="calibration_view_tree" model="ir.ui.view">
+        <field name="name">patrol.camera.calibration.tree</field>
+        <field name="model">patrol.camera.calibration</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="equipment_id"/>
+                <field name="method"/>
+                <field name="cam_heading"/>
+                <field name="cam_tilt"/>
+                <field name="cam_fov_h"/>
+                <field name="cam_height"/>
+                <field name="max_range"/>
+                <field name="accuracy_estimate"/>
+                <field name="is_active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="calibration_view_form" model="ir.ui.view">
+        <field name="name">patrol.camera.calibration.form</field>
+        <field name="model">patrol.camera.calibration</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="กล้อง">
+                            <field name="equipment_id"/>
+                            <field name="method"/>
+                            <field name="is_active"/>
+                        </group>
+                        <group string="ความแม่น">
+                            <field name="max_range"/>
+                            <field name="accuracy_estimate"/>
+                        </group>
+                    </group>
+
+                    <group string="Camera Parameters" invisible="method != 'params'">
+                        <group>
+                            <field name="cam_lat"/>
+                            <field name="cam_lng"/>
+                            <field name="cam_height"/>
+                        </group>
+                        <group>
+                            <field name="cam_heading"/>
+                            <field name="cam_tilt"/>
+                            <field name="cam_fov_h"/>
+                            <field name="cam_fov_v"/>
+                        </group>
+                        <group>
+                            <field name="image_width"/>
+                            <field name="image_height"/>
+                        </group>
+                    </group>
+
+                    <group string="Homography Calibration" invisible="method != 'homography'">
+                        <field name="calib_points_json" widget="text"/>
+                        <button name="action_compute_homography" string="คำนวณ Homography Matrix"
+                                type="object" class="btn-primary"/>
+                        <field name="homography_matrix" widget="text"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="calibration_action" model="ir.actions.act_window">
+        <field name="name">Camera Calibration</field>
+        <field name="res_model">patrol.camera.calibration</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ═══ World Track ═══ -->
+    <record id="world_track_view_tree" model="ir.ui.view">
+        <field name="name">patrol.world.track.tree</field>
+        <field name="model">patrol.world.track</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="match_status == 'watchlist'"
+                  decoration-muted="is_active == False">
+                <field name="track_id"/>
+                <field name="object_type"/>
+                <field name="match_status" widget="badge"
+                       decoration-success="match_status == 'known'"
+                       decoration-warning="match_status == 'unknown'"
+                       decoration-danger="match_status == 'watchlist'"/>
+                <field name="person_id"/>
+                <field name="soldier_id"/>
+                <field name="detected_plate"/>
+                <field name="position_source" widget="badge"/>
+                <field name="accuracy"/>
+                <field name="camera_count"/>
+                <field name="first_seen"/>
+                <field name="last_seen"/>
+                <field name="is_active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="world_track_view_form" model="ir.ui.view">
+        <field name="name">patrol.world.track.form</field>
+        <field name="model">patrol.world.track</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <field name="snapshot" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <h1><field name="track_id"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="object_type"/>
+                            <field name="match_status"/>
+                            <field name="person_id"/>
+                            <field name="vehicle_id"/>
+                            <field name="soldier_id"/>
+                            <field name="detected_plate"/>
+                        </group>
+                        <group>
+                            <field name="lat"/>
+                            <field name="lng"/>
+                            <field name="accuracy"/>
+                            <field name="position_source"/>
+                            <field name="camera_count"/>
+                            <field name="cameras_seen"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="first_seen"/>
+                            <field name="last_seen"/>
+                            <field name="is_active"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="เส้นทาง">
+                            <field name="point_ids">
+                                <list>
+                                    <field name="timestamp"/>
+                                    <field name="equipment_id"/>
+                                    <field name="lat"/>
+                                    <field name="lng"/>
+                                    <field name="accuracy"/>
+                                    <field name="position_source" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="world_track_action" model="ir.actions.act_window">
+        <field name="name">World Tracking</field>
+        <field name="res_model">patrol.world.track</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ═══ Menus ═══ -->
+    <menuitem id="menu_geolocation"
+              name="Geolocation"
+              parent="patrol_command.menu_patrol_config"
+              sequence="50"/>
+
+    <menuitem id="menu_calibration" name="Camera Calibration"
+              parent="menu_geolocation" action="calibration_action" sequence="10"/>
+    <menuitem id="menu_world_track" name="World Tracking"
+              parent="patrol_command.menu_patrol_operations" action="world_track_action" sequence="35"/>
+
+</odoo>

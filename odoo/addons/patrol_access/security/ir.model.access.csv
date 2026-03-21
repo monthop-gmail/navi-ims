@@ -9,3 +9,7 @@ access_request,patrol.access.request.user,model_patrol_access_request,patrol_com
 access_request_leader,patrol.access.request.leader,model_patrol_access_request,patrol_command.group_squad_leader,1,1,1,0
 access_log,patrol.access.log.user,model_patrol_access_log,patrol_command.group_soldier,1,0,0,0
 access_log_leader,patrol.access.log.leader,model_patrol_access_log,patrol_command.group_squad_leader,1,1,1,0
+access_sighting,patrol.sighting.user,model_patrol_sighting,patrol_command.group_soldier,1,0,0,0
+access_sighting_leader,patrol.sighting.leader,model_patrol_sighting,patrol_command.group_squad_leader,1,1,1,0
+access_sighting_alert,patrol.sighting.alert.user,model_patrol_sighting_alert,patrol_command.group_squad_leader,1,0,0,0
+access_sighting_alert_cmd,patrol.sighting.alert.cmd,model_patrol_sighting_alert,patrol_command.group_platoon_leader,1,1,1,1

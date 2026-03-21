@@ -292,4 +292,94 @@
     <menuitem id="menu_access_gate" name="ประตู / จุดเข้า-ออก"
               parent="menu_access" action="access_gate_action" sequence="40"/>
 
+    <!-- ═══ Sighting ═══ -->
+    <record id="sighting_view_tree" model="ir.ui.view">
+        <field name="name">patrol.sighting.tree</field>
+        <field name="model">patrol.sighting</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="match_status == 'watchlist'"
+                  decoration-warning="match_status == 'unknown'">
+                <field name="timestamp"/>
+                <field name="equipment_id"/>
+                <field name="sighting_type"/>
+                <field name="match_status" widget="badge"
+                       decoration-success="match_status == 'known'"
+                       decoration-warning="match_status == 'unknown'"
+                       decoration-danger="match_status == 'watchlist'"/>
+                <field name="person_name"/>
+                <field name="detected_plate"/>
+                <field name="confidence"/>
+                <field name="direction"/>
+                <field name="track_id"/>
+                <field name="incident_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="sighting_view_form" model="ir.ui.view">
+        <field name="name">patrol.sighting.form</field>
+        <field name="model">patrol.sighting</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="equipment_id"/>
+                            <field name="timestamp"/>
+                            <field name="sighting_type"/>
+                            <field name="match_status"/>
+                            <field name="direction"/>
+                            <field name="track_id"/>
+                        </group>
+                        <group>
+                            <field name="person_id"/>
+                            <field name="vehicle_id"/>
+                            <field name="detected_plate"/>
+                            <field name="confidence" widget="progressbar"/>
+                            <field name="watchlist_id"/>
+                            <field name="incident_id"/>
+                        </group>
+                    </group>
+                    <field name="snapshot" widget="image"/>
+                    <field name="note"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="sighting_action" model="ir.actions.act_window">
+        <field name="name">การพบเห็น</field>
+        <field name="res_model">patrol.sighting</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ═══ Sighting Alert Rules ═══ -->
+    <record id="sighting_alert_view_tree" model="ir.ui.view">
+        <field name="name">patrol.sighting.alert.tree</field>
+        <field name="model">patrol.sighting.alert</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="alert_type"/>
+                <field name="severity" widget="badge"/>
+                <field name="create_incident"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="sighting_alert_action" model="ir.actions.act_window">
+        <field name="name">กฎแจ้งเตือน</field>
+        <field name="res_model">patrol.sighting.alert</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Sighting menus -->
+    <menuitem id="menu_sighting_parent" name="สอดส่อง"
+              parent="patrol_command.menu_patrol_root" sequence="48"/>
+    <menuitem id="menu_sighting" name="การพบเห็น"
+              parent="menu_sighting_parent" action="sighting_action" sequence="10"/>
+    <menuitem id="menu_sighting_alerts" name="กฎแจ้งเตือน"
+              parent="menu_sighting_parent" action="sighting_alert_action" sequence="20"/>
+
 </odoo>

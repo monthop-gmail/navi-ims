@@ -79,16 +79,8 @@ git clone https://github.com/monthop-gmail/navi-ims.git
 cd navi-ims
 cp .env.example .env
 
-# Start ทุก service
+# Start ทุก service (ครั้งแรก Odoo จะ auto-init DB + ลง 7 modules ~30 วินาที)
 docker compose up -d --build
-
-# Init Odoo database + ติดตั้งทุก module (ครั้งแรก ~2 นาที)
-docker compose run --rm odoo odoo \
-  -i base,patrol_command,patrol_personnel,patrol_inventory,patrol_intelligence,patrol_geofence,patrol_access,patrol_geolocation \
-  --stop-after-init -d odoo
-
-# Restart Odoo
-docker compose restart odoo
 ```
 
 เปิด http://localhost:8069 → Login: **admin / admin**

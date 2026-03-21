@@ -128,3 +128,57 @@ class CommandCenterController(http.Controller):
             "active_missions": active_missions,
             "active_sos": sos_count,
         }
+
+    @http.route("/patrol/api/sightings", type="json", auth="user")
+    def get_sightings(self, minutes=10, camera_name=None):
+        """ดึง sightings ล่าสุด (ถ้าติดตั้ง patrol_access)"""
+        if "patrol.sighting" not in request.env:
+            return []
+
+        from datetime import timedelta
+        since = fields.Datetime.now() - timedelta(minutes=int(minutes))
+        domain = [("timestamp", ">=", since)]
+        if camera_name:
+            domain.append(("equipment_id.name", "=", camera_name))
+
+        sightings = request.env["patrol.sighting"].search_read(
+            domain,
+            ["equipment_id", "sighting_type", "match_status",
+             "person_id", "person_name", "vehicle_id", "detected_plate",
+             "confidence", "lat", "lng", "direction", "track_id", "timestamp"],
+            order="timestamp desc",
+            limit=200,
+        )
+        return sightings
+
+    @http.route("/patrol/api/access_logs", type="json", auth="user")
+    def get_access_logs(self, minutes=30):
+        """ดึง access logs ล่าสุด (ถ้าติดตั้ง patrol_access)"""
+        if "patrol.access.log" not in request.env:
+            return []
+
+        from datetime import timedelta
+        since = fields.Datetime.now() - timedelta(minutes=int(minutes))
+
+        logs = request.env["patrol.access.log"].search_read(
+            [("timestamp", ">=", since)],
+            ["gate_id", "direction", "access_type", "result",
+             "person_id", "vehicle_id", "detected_plate",
+             "match_confidence", "timestamp"],
+            order="timestamp desc",
+            limit=100,
+        )
+        return logs
+
+    @http.route("/patrol/api/gates", type="json", auth="user")
+    def get_gates(self):
+        """ดึงข้อมูล gates ทั้งหมด (ถ้าติดตั้ง patrol_access)"""
+        if "patrol.access.gate" not in request.env:
+            return []
+
+        gates = request.env["patrol.access.gate"].search_read(
+            [],
+            ["name", "gate_type", "gps_lat", "gps_lng",
+             "is_open", "auto_open_known", "camera_id"],
+        )
+        return gates

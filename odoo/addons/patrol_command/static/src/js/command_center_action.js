@@ -18,10 +18,13 @@ class CommandCenterDashboard extends Component {
             equipment: [],
             missions: [],
             incidents: [],
+            sightings: [],
+            gates: [],
             stats: {},
             selectedMissionId: null,
             selectedSoldierId: null,
             showTrack: false,
+            showSightings: true,
             view: "map", // "map" or "grid"
             // Video
             videoPopup: null, // { callsign, streamPath, state }
@@ -71,12 +74,14 @@ class CommandCenterDashboard extends Component {
 
     async loadData() {
         const missionId = this.state.selectedMissionId;
-        const [soldiers, equipment, missions, incidents, stats] = await Promise.all([
+        const [soldiers, equipment, missions, incidents, stats, sightings, gates] = await Promise.all([
             rpc("/patrol/api/soldiers", { mission_id: missionId }),
             rpc("/patrol/api/equipment", { mission_id: missionId }),
             rpc("/patrol/api/missions", { state: "active" }),
             rpc("/patrol/api/incidents", { mission_id: missionId }),
             rpc("/patrol/api/stats", { mission_id: missionId }),
+            rpc("/patrol/api/sightings", { minutes: 10 }).catch(() => []),
+            rpc("/patrol/api/gates", {}).catch(() => []),
         ]);
 
         this.state.soldiers = soldiers;
@@ -84,6 +89,8 @@ class CommandCenterDashboard extends Component {
         this.state.missions = missions;
         this.state.incidents = incidents;
         this.state.stats = stats;
+        this.state.sightings = sightings;
+        this.state.gates = gates;
 
         this.updateMarkers();
     }
@@ -188,6 +195,102 @@ class CommandCenterDashboard extends Component {
 
             this.markers[`incident_${inc.id}`] = marker;
         }
+
+        // Gate markers
+        for (const g of this.state.gates) {
+            if (!g.gps_lat || !g.gps_lng) continue;
+
+            const gateColor = g.is_open ? "#00ff88" : "#ff6600";
+            const gateIcon = L.divIcon({
+                className: "patrol-marker",
+                html: `<div style="
+                    font-size:16px;
+                    text-shadow: 0 0 6px ${gateColor};
+                    filter: drop-shadow(0 0 3px ${gateColor});
+                ">${g.is_open ? "🔓" : "🔒"}</div>`,
+                iconSize: [20, 20],
+                iconAnchor: [10, 10],
+            });
+
+            const marker = L.marker([g.gps_lat, g.gps_lng], { icon: gateIcon })
+                .addTo(this.map)
+                .bindPopup(`
+                    <strong>${g.name}</strong><br/>
+                    ${g.gate_type}<br/>
+                    ${g.is_open ? "🟢 เปิด" : "🔴 ปิด"}
+                `);
+
+            this.markers[`gate_${g.id}`] = marker;
+        }
+
+        // Sighting markers (recent detections)
+        if (this.state.showSightings) {
+            for (const s of this.state.sightings) {
+                if (!s.lat || !s.lng) continue;
+
+                // สี / icon ตาม match_status + sighting_type
+                const sightingStyles = {
+                    // คน
+                    "person_known_soldier": { color: "#2196F3", icon: "👤", label: "เจ้าหน้าที่" },
+                    "person_known_staff": { color: "#2196F3", icon: "👤", label: "เจ้าหน้าที่" },
+                    "person_known_vip": { color: "#9C27B0", icon: "⭐", label: "VIP" },
+                    "person_known_visitor": { color: "#FFC107", icon: "🧑", label: "ผู้มาติดต่อ" },
+                    "person_known_contractor": { color: "#FFC107", icon: "🧑", label: "ผู้รับเหมา" },
+                    "person_unknown": { color: "#9E9E9E", icon: "❓", label: "ไม่รู้จัก" },
+                    "person_watchlist": { color: "#F44336", icon: "🚨", label: "Watchlist" },
+                    // รถ
+                    "vehicle_known": { color: "#333333", icon: "🚗", label: "รถรู้จัก" },
+                    "vehicle_unknown": { color: "#795548", icon: "🚗", label: "รถไม่รู้จัก" },
+                    "vehicle_watchlist": { color: "#F44336", icon: "🚨", label: "รถ Watchlist" },
+                };
+
+                // Determine style key
+                let styleKey;
+                if (s.sighting_type === "vehicle") {
+                    styleKey = `vehicle_${s.match_status}`;
+                } else {
+                    // For known persons, try to get person_type
+                    if (s.match_status === "known" && s.person_id) {
+                        // Default to staff if we can't determine type
+                        styleKey = "person_known_staff";
+                    } else {
+                        styleKey = `person_${s.match_status}`;
+                    }
+                }
+
+                const style = sightingStyles[styleKey] || { color: "#9E9E9E", icon: "❓", label: "?" };
+
+                const sIcon = L.divIcon({
+                    className: "patrol-marker sighting-marker",
+                    html: `<div style="
+                        font-size:14px;
+                        background:${style.color};
+                        width:24px;height:24px;
+                        border-radius:50%;
+                        border:2px solid rgba(255,255,255,0.8);
+                        display:flex;align-items:center;justify-content:center;
+                        box-shadow:0 0 6px ${style.color};
+                        opacity:0.85;
+                    ">${style.icon}</div>`,
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12],
+                });
+
+                const popupContent = `
+                    <strong>${style.label}</strong><br/>
+                    ${s.person_name || s.detected_plate || "ไม่ทราบ"}<br/>
+                    กล้อง: ${s.equipment_id ? s.equipment_id[1] : "?"}<br/>
+                    ความมั่นใจ: ${s.confidence || 0}%<br/>
+                    ${s.direction || ""} ${s.timestamp || ""}
+                `;
+
+                const marker = L.marker([s.lat, s.lng], { icon: sIcon })
+                    .addTo(this.map)
+                    .bindPopup(popupContent);
+
+                this.markers[`sighting_${s.id}`] = marker;
+            }
+        }
     }
 
     async selectSoldier(soldier) {
@@ -225,6 +328,11 @@ class CommandCenterDashboard extends Component {
             this.trackLine.remove();
             this.trackLine = null;
         }
+    }
+
+    toggleSightings() {
+        this.state.showSightings = !this.state.showSightings;
+        this.updateMarkers();
     }
 
     selectMission(missionId) {

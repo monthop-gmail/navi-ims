@@ -191,6 +191,12 @@
             <!-- Map Controls -->
             <div class="patrol-map-controls position-absolute top-0 end-0 m-2" style="z-index:1000;">
                 <button class="btn btn-sm me-1"
+                        t-att-class="state.showSightings ? 'btn-info' : 'btn-dark'"
+                        t-on-click="() => this.toggleSightings()"
+                        title="แสดง/ซ่อน การพบเห็น">
+                    👁 สอดส่อง
+                </button>
+                <button class="btn btn-sm me-1"
                         t-att-class="state.showGrid ? 'btn-success' : 'btn-dark'"
                         t-on-click="() => this.toggleGrid()"
                         title="Video Grid">
@@ -246,6 +252,23 @@
                             t-on-click="() => this.openSoldierForm(state.videoPopup.id)">
                         ℹ️ ข้อมูล
                     </button>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="patrol-legend position-absolute bottom-0 start-0 m-2 p-2"
+                 style="z-index:1000; background:rgba(22,27,34,0.9); border:1px solid #30363d;
+                        border-radius:6px; font-size:0.7rem;"
+                 t-if="state.showSightings">
+                <div class="text-muted mb-1 fw-bold">สัญลักษณ์</div>
+                <div><span style="color:#2196F3">●</span> 👤 เจ้าหน้าที่</div>
+                <div><span style="color:#9C27B0">●</span> ⭐ VIP</div>
+                <div><span style="color:#FFC107">●</span> 🧑 ผู้มาติดต่อ</div>
+                <div><span style="color:#333;text-shadow:0 0 2px #fff">●</span> 🚗 รถ</div>
+                <div><span style="color:#9E9E9E">●</span> ❓ ไม่รู้จัก</div>
+                <div><span style="color:#F44336">●</span> 🚨 Watchlist</div>
+                <div class="mt-1 border-top pt-1">
+                    <div>🔓 ประตูเปิด / 🔒 ประตูปิด</div>
                 </div>
             </div>
         </div>

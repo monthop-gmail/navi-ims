@@ -66,11 +66,14 @@
 
 ### GitHub Codespaces (แนะนำ)
 
-1. กดปุ่ม **Open in GitHub Codespaces** ด้านบน
-2. เลือก machine type **4-core** ขึ้นไป
-3. รอ build (~5 นาทีครั้งแรก)
-4. Odoo เปิดอัตโนมัติที่ port 8069
-5. Login: **admin / admin**
+1. กดปุ่ม **Open in GitHub Codespaces** ด้านบน (หรือ Code → Codespaces → Create)
+2. รอ container สร้างเสร็จ (~1 นาที)
+3. Terminal จะรัน `docker compose up -d --build` อัตโนมัติ (~3-5 นาที)
+4. Odoo จะ auto-init DB + ลง 7 modules เอง (~30 วินาที)
+5. ไปที่ tab **PORTS** ด้านล่าง → คลิก globe icon ของ port **8069**
+6. Login: **admin / admin**
+
+> **หมายเหตุ:** ใน Codespaces ไม่ใช้ `localhost` — ดู URL จาก tab PORTS
 
 ### Docker Compose (Local)
 

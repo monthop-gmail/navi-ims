@@ -5,10 +5,13 @@
 ### Codespaces
 
 1. เปิด https://github.com/monthop-gmail/navi-ims
-2. **Code** → **Codespaces** → **Create codespace on master** (เลือก 4-core ขึ้นไป)
-3. รอ build (~5 นาที) → เปิด Terminal → รัน `bash .devcontainer/start.sh`
-4. ไปที่ tab **PORTS** ด้านล่าง → คลิก globe icon ของ port 8069
-5. Login: **admin / admin**
+2. **Code** → **Codespaces** → **Create codespace on master**
+3. รอ container สร้าง (~1 นาที) → Terminal จะรัน `docker compose up -d --build` อัตโนมัติ (~3-5 นาที)
+4. Odoo auto-init DB + ลง 7 modules (~30 วินาที)
+5. ไปที่ tab **PORTS** ด้านล่าง → คลิก globe icon ของ port **8069**
+6. Login: **admin / admin**
+
+> ใน Codespaces ไม่ใช้ `localhost` — ดู URL จาก tab PORTS
 
 ### Local Docker
 
@@ -16,11 +19,10 @@
 git clone https://github.com/monthop-gmail/navi-ims.git
 cd navi-ims
 cp .env.example .env
+
+# Start ทุกอย่าง (Odoo จะ auto-init DB + ลง 7 modules เอง)
 docker compose up -d --build
-docker compose run --rm odoo odoo \
-  -i base,patrol_command,patrol_personnel,patrol_inventory,patrol_intelligence,patrol_geofence,patrol_access,patrol_geolocation \
-  --stop-after-init -d odoo
-docker compose restart odoo
+# รอ ~30 วินาที แล้วเปิด
 ```
 
 เปิด http://localhost:8069 → Login: **admin / admin**

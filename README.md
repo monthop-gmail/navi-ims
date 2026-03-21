@@ -82,14 +82,9 @@ cp .env.example .env
 # Start ทุก service
 docker compose up -d --build
 
-# Init Odoo database + ติดตั้งทุก module
+# Init Odoo database + ติดตั้งทุก module (ครั้งแรก ~2 นาที)
 docker compose run --rm odoo odoo \
-  -i base,patrol_command,patrol_personnel,patrol_inventory,patrol_intelligence,patrol_geofence \
-  --stop-after-init -d odoo
-
-# ติดตั้ง module เพิ่ม (patrol_access, patrol_geolocation)
-docker compose run --rm odoo odoo \
-  -i patrol_access,patrol_geolocation \
+  -i base,patrol_command,patrol_personnel,patrol_inventory,patrol_intelligence,patrol_geofence,patrol_access,patrol_geolocation \
   --stop-after-init -d odoo
 
 # Restart Odoo

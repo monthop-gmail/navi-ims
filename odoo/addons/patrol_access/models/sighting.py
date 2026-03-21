@@ -14,7 +14,7 @@ class Sighting(models.Model):
 
     # What
     sighting_type = fields.Selection(
-        [("person", "บุคคล"), ("vehicle", "ยานพาหนะ")],
+        [("person", "บุคคล"), ("vehicle", "ยานพาหนะ"), ("vessel", "เรือ")],
         string="ประเภท",
         required=True,
     )
@@ -82,10 +82,12 @@ class SightingAlert(models.Model):
             ("watchlist", "ตรง Watchlist"),
             ("unknown_person", "พบบุคคลไม่รู้จัก"),
             ("unknown_vehicle", "พบรถไม่รู้จัก"),
-            ("blocked", "พบบุคคล/รถต้องห้าม"),
+            ("unknown_vessel", "พบเรือไม่รู้จัก"),
+            ("blocked", "พบบุคคล/รถ/เรือ ต้องห้าม"),
             ("specific_person", "พบบุคคลที่กำหนด"),
-            ("specific_vehicle", "พบรถที่กำหนด"),
+            ("specific_vehicle", "พบรถ/เรือที่กำหนด"),
             ("crowd", "พบคนจำนวนมาก"),
+            ("vessel_activity", "กิจกรรมทางน้ำผิดปกติ"),
         ],
         string="แจ้งเตือนเมื่อ",
         required=True,

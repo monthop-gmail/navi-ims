@@ -265,10 +265,13 @@
                 <div><span style="color:#9C27B0">●</span> ⭐ VIP</div>
                 <div><span style="color:#FFC107">●</span> 🧑 ผู้มาติดต่อ</div>
                 <div><span style="color:#333;text-shadow:0 0 2px #fff">●</span> 🚗 รถ</div>
+                <div><span style="color:#0077BE">●</span> 🚢 เรือรู้จัก</div>
+                <div><span style="color:#4FC3F7">●</span> ⛵ เรือไม่รู้จัก</div>
                 <div><span style="color:#9E9E9E">●</span> ❓ ไม่รู้จัก</div>
                 <div><span style="color:#F44336">●</span> 🚨 Watchlist</div>
                 <div class="mt-1 border-top pt-1">
-                    <div>🔓 ประตูเปิด / 🔒 ประตูปิด</div>
+                    <div>🔓 ประตู/ท่าเรือ เปิด</div>
+                    <div>🔒 ประตู/ท่าเรือ ปิด</div>
                 </div>
             </div>
         </div>

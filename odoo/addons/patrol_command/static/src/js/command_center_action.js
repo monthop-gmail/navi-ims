@@ -242,11 +242,17 @@ class CommandCenterDashboard extends Component {
                     "vehicle_known": { color: "#333333", icon: "🚗", label: "รถรู้จัก" },
                     "vehicle_unknown": { color: "#795548", icon: "🚗", label: "รถไม่รู้จัก" },
                     "vehicle_watchlist": { color: "#F44336", icon: "🚨", label: "รถ Watchlist" },
+                    // เรือ
+                    "vessel_known": { color: "#0077BE", icon: "🚢", label: "เรือรู้จัก" },
+                    "vessel_unknown": { color: "#4FC3F7", icon: "⛵", label: "เรือไม่รู้จัก" },
+                    "vessel_watchlist": { color: "#F44336", icon: "🚨", label: "เรือ Watchlist" },
                 };
 
                 // Determine style key
                 let styleKey;
-                if (s.sighting_type === "vehicle") {
+                if (s.sighting_type === "vessel") {
+                    styleKey = `vessel_${s.match_status}`;
+                } else if (s.sighting_type === "vehicle") {
                     styleKey = `vehicle_${s.match_status}`;
                 } else {
                     // For known persons, try to get person_type

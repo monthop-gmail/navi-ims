@@ -12,6 +12,7 @@ class WatchlistEntry(models.Model):
         [
             ("person", "บุคคล"),
             ("vehicle", "ยานพาหนะ"),
+            ("vessel", "เรือ"),
             ("organization", "กลุ่ม/องค์กร"),
         ],
         string="ประเภท",

@@ -1,6 +1,6 @@
-# NAVI-CC — Patrol Command Center
+# NAVI-IMS — Integrated Management System
 
-ระบบศูนย์บัญชาการลาดตะเวน บน Odoo 19 — รวม GPS Tracking, Live Video, AI Detection, Incident Management และ Equipment Maintenance ในที่เดียว
+ระบบจัดการแบบบูรณาการ บน Odoo 19 — ศูนย์บัญชาการ, GPS Tracking, Live Video, AI Detection, Access Control, Geolocation และอื่นๆ
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/monthop-gmail/navi-ims?quickstart=1)
 
@@ -8,17 +8,18 @@
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│                     Odoo 19 (ศูนย์บัญชาการ)                    │
+│                     Odoo 19 (NAVI-IMS)                       │
 │                                                              │
-│  patrol.unit          โครงสร้างหน่วย (กองร้อย/หมวด/หมู่)       │
-│  patrol.soldier       ทะเบียนกำลังพล + ยศ + สังกัด             │
-│  patrol.equipment     ทะเบียนอุปกรณ์ (กล้อง/drone/body cam)    │
-│  patrol.mission       ภารกิจ + มอบหมายคน/อุปกรณ์               │
-│  patrol.gps.log       บันทึก GPS (ทหาร + drone)               │
-│  patrol.incident      เหตุการณ์/SOS + AI detection             │
-│  patrol.maintenance   ซ่อมบำรุง + แผนซ่อม + อะไหล่             │
+│  patrol_command (core)    ศูนย์บัญชาการ, ภารกิจ, กำลังพล      │
+│  patrol_personnel         ฝึกอบรม, ตารางเวร, สุขภาพ           │
+│  patrol_inventory         คลังพัสดุ, เบิก-จ่าย                │
+│  patrol_intelligence      ข่าวกรอง, Watchlist, พื้นที่เสี่ยง   │
+│  patrol_geofence          เขตพื้นที่, แจ้งเตือนเข้า-ออกเขต    │
+│  patrol_access            เข้า-ออก, ทะเบียนคน/รถ, ประตู       │
+│  patrol_geolocation       พิกัดจริงจากกล้อง, Camera Calibration│
 │                                                              │
-│  Command Center:      แผนที่ Leaflet + Live Video (WHEP)      │
+│  Command Center: แผนที่ Leaflet + Live Video (WHEP)           │
+│    + Sighting markers + Gate status + World Tracking          │
 └──────────┬───────────────────────────────────────────────────┘
            │
      ┌─────┼──────────┬──────────────┬──────────────┐
@@ -26,6 +27,18 @@
   MediaMTX  Node.js   Celery       Inngest       PostgreSQL
   (stream)  (Bull)    (AI)         (workflow)    (Odoo DB)
 ```
+
+## Modules
+
+| Module | ติดตั้ง | คำอธิบาย |
+|--------|---------|----------|
+| **patrol_command** | บังคับ | Core: หน่วย, กำลังพล, อุปกรณ์, ภารกิจ, GPS, เหตุการณ์, ซ่อมบำรุง, Command Center |
+| **patrol_personnel** | เลือกได้ | ประวัติฝึก + ใบรับรอง, ตารางเวร, สุขภาพ + ความพร้อม |
+| **patrol_inventory** | เลือกได้ | คลังพัสดุ (อาวุธ/กระสุน/เสบียง/อะไหล่), ใบเบิก-จ่าย + อนุมัติ |
+| **patrol_intelligence** | เลือกได้ | Watchlist (บุคคล/รถ), รายงานข่าวกรอง (INTSUM), พื้นที่เสี่ยง |
+| **patrol_geofence** | เลือกได้ | กำหนดเขต (วงกลม/polygon), แจ้งเตือนเข้า-ออก, สร้าง incident อัตโนมัติ |
+| **patrol_access** | เลือกได้ | ทะเบียนคน/รถ, ประตู/ไม้กั้น, เปิดอัตโนมัติเมื่อรู้จัก, คำขอเข้า-ออก, สอดส่อง (Sighting) |
+| **patrol_geolocation** | เลือกได้ | Camera Calibration, แปลง pixel→พิกัดจริง, Sensor Fusion, World Tracking ข้ามกล้อง |
 
 ## แหล่งภาพ 3 ประเภท
 
@@ -39,10 +52,10 @@
 
 | Service | Port | หน้าที่ |
 |---------|------|---------|
-| **Odoo 19** | `8069` | ศูนย์บัญชาการ — ข้อมูลทั้งหมดอยู่ที่นี่ |
-| **MediaMTX** | `8554` `1935` `8889` `8888` | รวม stream กล้องทุกประเภท (RTSP/RTMP/WebRTC/HLS) |
-| **Node.js + Bull** | `3000` | ดึง frame จาก RTSP + GPS relay (Socket.IO) |
-| **Inngest** | `8288` | Shared workflow engine (incident + mission lifecycle) |
+| **Odoo 19** | `8069` | ศูนย์กลางข้อมูลทั้งหมด |
+| **MediaMTX** | `8554` `1935` `8889` `8888` | รวม stream กล้อง (RTSP/RTMP/WebRTC/HLS) |
+| **Node.js + Bull** | `3000` | ดึง frame + GPS relay (Socket.IO) |
+| **Inngest** | `8288` | Shared workflow engine |
 | **Inngest Worker** | `8100` | รัน workflow functions |
 | **Celery Worker** | — | AI วิเคราะห์ภาพ + video processing |
 | **PostgreSQL** x2 | — | Database สำหรับ Odoo + Inngest |
@@ -63,14 +76,21 @@
 
 ```bash
 git clone https://github.com/monthop-gmail/navi-ims.git
-cd navi-cc
+cd navi-ims
 cp .env.example .env
 
 # Start ทุก service
 docker compose up -d --build
 
-# Init Odoo database + ติดตั้ง module
-docker compose run --rm odoo odoo -i base,patrol_command --stop-after-init -d odoo
+# Init Odoo database + ติดตั้งทุก module
+docker compose run --rm odoo odoo \
+  -i base,patrol_command,patrol_personnel,patrol_inventory,patrol_intelligence,patrol_geofence \
+  --stop-after-init -d odoo
+
+# ติดตั้ง module เพิ่ม (patrol_access, patrol_geolocation)
+docker compose run --rm odoo odoo \
+  -i patrol_access,patrol_geolocation \
+  --stop-after-init -d odoo
 
 # Restart Odoo
 docker compose restart odoo
@@ -82,11 +102,12 @@ docker compose restart odoo
 
 ### 1. Command Center (แผนที่)
 
-เปิด Odoo → เมนู **ศูนย์บัญชาการ** → **ศูนย์บัญชาการ**
+เมนู **ปฏิบัติการ** → **ศูนย์บัญชาการ**
 
-- แผนที่ dark theme แสดง marker กำลังพล + อุปกรณ์ + SOS
-- Sidebar: รายชื่อทหาร online/offline, สถิติ, เหตุการณ์
-- Filter ตามภารกิจ
+- แผนที่ dark theme + marker: กำลังพล, อุปกรณ์, SOS, ประตู, การพบเห็น
+- Sidebar: รายชื่อทหาร, สถิติ, เหตุการณ์
+- ปุ่ม **👁 สอดส่อง**: แสดง/ซ่อน marker การพบเห็น + legend สี
+- ปุ่ม **📹 Grid**: สลับโหมด video grid
 - Auto-refresh ทุก 5 วินาที
 
 ### 2. ทหารลาดตะเวน (มือถือ)
@@ -94,9 +115,8 @@ docker compose restart odoo
 เปิด `http://localhost:3000/patrol/soldier.html` บนมือถือ
 
 1. ใส่ callsign (เช่น `Alpha-1`) → กด **เริ่มลาดตะเวน**
-2. อนุญาตกล้อง + GPS
-3. GPS จะอัพเดทใน Odoo real-time
-4. กดค้าง **SOS** (1 วินาที) → สร้าง incident อัตโนมัติ
+2. อนุญาตกล้อง + GPS → ส่ง video (WHIP) + GPS (Socket.IO) ไป server
+3. กดค้าง **SOS** (1 วินาที) → สร้าง incident + Inngest workflow อัตโนมัติ
 
 ### 3. Live Video
 
@@ -106,28 +126,34 @@ docker compose restart odoo
 
 ### 4. ภารกิจ
 
-เมนู **ปฏิบัติการ** → **ภารกิจ**
-
 1. สร้างภารกิจ → มอบหมายกำลังพล + อุปกรณ์
 2. กด **เริ่มปฏิบัติการ** → เริ่ม stream กล้อง + แจ้งทุกทีมผ่าน Inngest
-3. เหตุการณ์ระหว่างภารกิจบันทึกอัตโนมัติ
-4. กด **เสร็จสิ้น** → หยุด stream + สรุปผล
+3. กด **เสร็จสิ้น** → หยุด stream + สรุปผล
 
-### 5. เหตุการณ์ / SOS
+### 5. เหตุการณ์ / Incident
 
-เมนู **ปฏิบัติการ** → **เหตุการณ์** (Kanban board)
+- สร้างจาก: SOS, AI detection, geofence, manual
+- Workflow: ใหม่ → มอบหมาย → ดำเนินการ → แก้ไข → ปิด
+- Escalate อัตโนมัติตามสายบัญชาการ
 
-- สร้างได้จาก: SOS, AI detection, manual
-- Workflow: ใหม่ → มอบหมาย → กำลังดำเนินการ → แก้ไขแล้ว → ปิด
-- Escalate อัตโนมัติตามสายบัญชาการ (ผ่าน Inngest)
+### 6. เข้า-ออก / Access Control
 
-### 6. ซ่อมบำรุง
+- **ทะเบียนบุคคล/รถ**: รูปถ่าย, สิทธิ์, วันหมดอายุ
+- **ประตู**: ตั้งนโยบาย เปิดอัตโนมัติ/รออนุมัติ/บล็อก
+- **คำขอเข้า-ออก** (Kanban): กดอนุมัติ → เปิดประตู + บันทึกเข้าทะเบียน
 
-เมนู **ซ่อมบำรุง** → **ใบแจ้งซ่อม**
+### 7. สอดส่อง / Sighting
 
-- แจ้งซ่อม → มอบหมายช่าง → ซ่อม → ตรวจรับ → อุปกรณ์กลับเป็น ready
-- แผนซ่อมบำรุง: ตั้งรอบ (ทุก 30 วัน ฯลฯ) → สร้างใบแจ้งซ่อมอัตโนมัติ
-- บันทึกอะไหล่ + ค่าใช้จ่าย
+- กล้องในพื้นที่บันทึกทุกคน/รถที่ผ่าน
+- Match กับทะเบียน + Watchlist อัตโนมัติ
+- ตั้งกฎแจ้งเตือน → สร้าง incident เมื่อตรงเงื่อนไข
+
+### 8. Geolocation / World Tracking
+
+- Camera Calibration: ตั้งค่ากล้อง (ตำแหน่ง, ทิศ, FOV, ความสูง)
+- AI ส่ง bounding box → ได้พิกัดจริง (±5-20m)
+- Sensor Fusion: ถ้ารู้จักทหารที่ online → ใช้ GPS จริงแทน (±5m)
+- World Tracking: ติดตามคน/รถข้ามหลายกล้อง + ดูเส้นทางย้อนหลัง
 
 ## Data Flow
 
@@ -139,69 +165,73 @@ docker compose restart odoo
 
 📷 กล้อง Fixed (Dahua NVR)
   ├── RTSP ──→ MediaMTX ──→ Node.js ดึง frame
-  └── frame ──→ Celery AI ──→ anomaly? ──→ Odoo incident ──→ Inngest
+  ├── frame ──→ Celery AI ──→ anomaly? ──→ Odoo incident ──→ Inngest
+  ├── AI ตรวจจับคน/รถ ──→ Geolocation (pixel→พิกัด) ──→ Sighting
+  └── คน/รถ ที่ประตู ──→ Access Control ──→ เปิด/บล็อก/รออนุมัติ
 
 🚁 Drone
   ├── Video (RTMP) ──→ MediaMTX ──→ Node.js ดึง frame ──→ Celery AI
   └── GPS (tracker) ──→ Odoo GPS Server (HTTP/OsmAnd/Traccar)
 
-⚙️ Inngest Workflow
+⚙️ Inngest Workflow (shared — ทุก module ใช้ร่วมกัน)
   incident.created ──→ หา commander ──→ แจ้งเตือน ──→ รอรับงาน
     ──→ timeout? escalate ──→ รอแก้ไข ──→ ปิด
   mission.activated ──→ แจ้งทุกทีม ──→ เริ่ม equipment ──→ monitor ──→ สรุปผล
 ```
 
+## Command Center — Marker สีบนแผนที่
+
+| สี | Icon | ความหมาย |
+|----|------|----------|
+| 🟢 เขียว | ● | ทหาร online |
+| ⚫ เทา | ● | ทหาร offline |
+| 🔵 น้ำเงิน | 👤 | เจ้าหน้าที่ (sighting) |
+| 🟣 ม่วง | ⭐ | VIP (sighting) |
+| 🟡 เหลือง | 🧑 | ผู้มาติดต่อ (sighting) |
+| ⚫ ดำ | 🚗 | รถ (sighting) |
+| ⚫ เทา | ❓ | ไม่รู้จัก (sighting) |
+| 🔴 แดง | 🚨 | Watchlist / SOS |
+| 🟢/🟠 | 🔓/🔒 | ประตูเปิด/ปิด |
+| 🔵 | 📷 | กล้อง Fixed |
+| 🟠 | 🚁 | Drone |
+
 ## Security (Role-Based Access)
 
 | บทบาท | สิทธิ์ |
 |--------|--------|
-| **ทหาร** (pvt-cpl) | ดูภารกิจ/อุปกรณ์/เหตุการณ์ของตัวเอง, แจ้งซ่อม, รายงานเหตุการณ์ |
+| **ทหาร** (pvt-cpl) | ดูของตัวเอง, แจ้งซ่อม, รายงานเหตุการณ์ |
 | **ผบ.หมู่** (sgt) | + ดูทหารในหมู่, จัดการเหตุการณ์ |
 | **ผบ.หมวด** (lt) | + ดูทั้งหมวด, สร้างภารกิจ, จัดการอุปกรณ์ |
 | **ผบ.กองร้อย** (cpt+) | ดูทุกอย่าง, ตั้งค่าระบบ |
 
-ทหารทุกคน login เข้า Odoo ได้ เห็นข้อมูลตามสิทธิ์ของยศ
-
-## GPS Server (Drone)
-
-รองรับ 3 protocol:
-
-| Protocol | Endpoint | ใช้กับ |
-|----------|----------|--------|
-| HTTP POST JSON | `POST /patrol/api/external/drone_gps` | Custom firmware |
-| OsmAnd | `GET /patrol/gps/osmand?id=DRONE-01&lat=..&lon=..` | GPS tracker ทั่วไป |
-| Traccar forward | `POST /patrol/api/external/traccar_forward` | Traccar server |
-
 ## โครงสร้างไฟล์
 
 ```
-navi-cc/
-├── .devcontainer/              # GitHub Codespaces config
+navi-ims/
+├── .devcontainer/              # GitHub Codespaces
 ├── docker-compose.yml          # 10 services
-├── .env.example                # Environment variables
+├── .env.example
 │
-├── odoo/
-│   ├── odoo.conf
-│   └── addons/
-│       └── patrol_command/     # Odoo module
-│           ├── models/         # 10 models
-│           ├── views/          # List, Form, Kanban, Command Center
-│           ├── controllers/    # REST API + External API + GPS Server
-│           ├── security/       # Groups + Record Rules + ACL
-│           ├── static/src/     # OWL components (Leaflet map, WHEP player)
-│           └── data/           # Demo data (units, soldiers, equipment)
+├── odoo/addons/
+│   ├── patrol_command/         # Core module (บังคับ)
+│   ├── patrol_personnel/       # กำลังพล (เลือกได้)
+│   ├── patrol_inventory/       # คลังพัสดุ (เลือกได้)
+│   ├── patrol_intelligence/    # ข่าวกรอง (เลือกได้)
+│   ├── patrol_geofence/        # เขตพื้นที่ (เลือกได้)
+│   ├── patrol_access/          # เข้า-ออก + สอดส่อง (เลือกได้)
+│   └── patrol_geolocation/     # พิกัดจริง + World Tracking (เลือกได้)
 │
-├── inngest-worker/             # Shared workflow engine (Python/FastAPI)
-├── celery-worker/              # AI + Video processing (Python/Celery)
-├── node-service/               # Camera ingest + GPS relay (Node.js/Bull)
+├── inngest-worker/             # Shared workflow engine
+├── celery-worker/              # AI + Video processing
+├── node-service/               # Camera ingest + GPS relay
 │   ├── src/
-│   │   ├── index.mjs           # Express + Bull + Camera pull
-│   │   └── gps-relay.mjs       # Socket.IO GPS relay
+│   │   ├── index.mjs
+│   │   └── gps-relay.mjs
 │   └── public/
-│       └── soldier.html        # Mobile page for soldiers
+│       └── soldier.html        # Mobile page
 │
 └── mediamtx/
-    └── mediamtx.yml            # MediaMTX config (RTSP/RTMP/WebRTC/HLS)
+    └── mediamtx.yml            # Media server config
 ```
 
 ## Tech Stack

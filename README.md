@@ -261,6 +261,29 @@ navi-ims/
     └── mediamtx.yml            # Media server config
 ```
 
+## Flow Definitions — ทีมส่งต่องานกัน
+
+ทีมออกแบบ flow ใน [draw.io](https://app.diagrams.net/) → commit เข้า repo → AI อ่านแล้ว implement ได้เลย
+
+```
+docs/flows/
+├── diagrams/              ← .drawio + .svg (ทีมวาด)
+├── sos-incident.md        ← Mermaid + YAML spec (AI อ่าน)
+├── ai-detection.md
+├── mission-lifecycle.md
+├── access-control.md
+├── maintenance.md
+├── supply-request.md
+└── _template.md           ← Template สำหรับ flow ใหม่
+```
+
+**3 วิธีสร้าง flow:**
+1. **draw.io** → save .drawio + export .svg → บอก AI สร้าง spec
+2. **Mermaid + YAML** → เขียนตรงใน markdown
+3. **อธิบายด้วยคำพูด** → AI สร้าง diagram + spec + code ให้ทั้งหมด
+
+รายละเอียด: [docs/flows/README.md](docs/flows/README.md)
+
 ## Tech Stack
 
 | Layer | Technology |
